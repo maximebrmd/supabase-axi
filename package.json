@@ -1,6 +1,6 @@
 {
   "name": "supabase-axi",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "packageManager": "pnpm@11.8.0",
   "description": "AXI-compliant Supabase CLI for agents — token-efficient TOON output, contextual suggestions, structured errors",
   "type": "module",
