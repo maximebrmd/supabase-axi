@@ -1,6 +1,0 @@
-Two Edge Functions are deployed to the `supabase-axi-bench` project, both with status **ACTIVE**:
-
-| Name | Slug | JWT Verification |
-|------|------|-----------------|
-| `hello-world` | `hello-world` | disabled |
-| `post-stats` | `post-stats` | disabled |

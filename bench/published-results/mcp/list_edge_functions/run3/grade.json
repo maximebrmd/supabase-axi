@@ -1,4 +1,0 @@
-{
-  "task_success": true,
-  "details": "The agent used the appropriate MCP tool (mcp__supabase__list_edge_functions) to query the project, received the correct data showing both 'hello-world' and 'post-stats' edge functions, and accurately reported both names with their status. The answer is complete and matches the known facts."
-}

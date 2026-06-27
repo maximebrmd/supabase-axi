@@ -1,4 +1,0 @@
-{
-  "task_success": true,
-  "details": "The agent correctly used the mcp__supabase__list_edge_functions tool to query the supabase-axi-bench project and accurately reported both deployed edge functions (hello-world and post-stats) with their correct names, slugs, and ACTIVE status. The answer is complete and matches the known facts."
-}

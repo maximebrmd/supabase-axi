@@ -2,8 +2,14 @@
 node_modules/
 dist/
 
-# Live run artifacts (the committed copy lives in published-results/)
+# Live run artifacts — raw per-run output the runner/reporter write here.
 results/
+
+# published-results/ holds ONLY the four committed summary files
+# (report.md, report.csv, STUDY.md, results.jsonl). Never track the per-run
+# artifact subdirs (axi/, cli/, mcp/, …) — they belong in the gitignored
+# results/ dir above.
+published-results/*/
 
 # Supabase local stack scratch
 fixtures/demo/supabase/.branches/

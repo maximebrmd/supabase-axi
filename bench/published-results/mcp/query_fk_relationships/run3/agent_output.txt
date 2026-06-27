@@ -1,8 +1,0 @@
-Two tables reference `public.authors` via foreign key:
-
-| Referencing table | Referencing column | Constraint name | Referenced column |
-|---|---|---|---|
-| `public.posts` | `author_id` | `posts_author_id_fkey` | `id` |
-| `public.comments` | `author_id` | `comments_author_id_fkey` | `id` |
-
-Both use an `author_id → authors.id` relationship. The `information_schema` query came back empty likely due to a privilege/search-path quirk; the `pg_catalog` query against `pg_constraint` is the authoritative source.

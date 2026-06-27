@@ -1,7 +1,0 @@
-Here are the details for the `supabase-axi-bench` project:
-
-| Field | Value |
-|---|---|
-| **Project ID / Ref** | `ebwcjhmrvwekjiybhytt` |
-| **Region** | `eu-central-1` (AWS EU Frankfurt) |
-| **Status** | `ACTIVE_HEALTHY` |

@@ -1,8 +1,0 @@
-Two tables in the `public` schema have foreign keys referencing `public.authors`:
-
-| Referencing Table | Referencing Column |
-|---|---|
-| `public.posts` | `author_id` |
-| `public.comments` | `author_id` |
-
-Both use `author_id` as the foreign key column pointing to `public.authors`.

@@ -1,1 +1,0 @@
-{"pass": true, "reason": "The agent ran the appropriate command `supabase-axi branches list --project-ref lplasiqtvljyzfztfire`, correctly interpreted the empty result, and accurately reported 0 preview branches, which matches the known fact that free-tier projects have no preview branches."}
