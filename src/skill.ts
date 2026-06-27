@@ -72,7 +72,7 @@ Run \`npx -y supabase-axi --help\` for global flags, or \`npx -y supabase-axi <c
 
 - Output is TOON-encoded and token-efficient; pipe through grep/head only when a list is very long.
 - Lists are minimal by default — \`projects list\` shows ref/name/region; add \`--full\` or \`--fields <a,b>\` to widen.
-- Large blobs (\`db dump\`, \`db diff\`, \`gen types\`) are previewed; redirect stdout to a file to capture the whole thing.
+- Large blobs (\`db dump\`, \`db diff\`, \`gen types\`) are previewed; add \`--full\` to return the complete output (or pass \`-f <file>\` to \`db dump\`/\`db diff\` to write it straight to a file).
 - \`db\`, \`migration up\`, \`gen types --local\`, and \`start\`/\`stop\`/\`status\` act on the **local** stack or a **linked** project; link first with \`link --project-ref <ref>\`.
 - \`projects create\` provisions **billable** cloud infrastructure — use it deliberately.
 - Secret values are never printed back; \`secrets list\` shows a digest only.

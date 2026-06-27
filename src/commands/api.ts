@@ -52,6 +52,12 @@ export async function apiCommand(args: string[]) {
   }
 
   const body = parseJson(strFlag(flags.body), "--body");
+  if (body !== undefined && method === "get") {
+    throw usage(
+      "GET requests cannot have a body",
+      "Use --method post/patch/put to send a request body",
+    );
+  }
 
   const result: Obj = await mgmtApi(path, {
     method,

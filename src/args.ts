@@ -38,35 +38,6 @@ export function strFlag(
   return typeof value === "string" ? value : undefined;
 }
 
-/** Parse an integer flag, falling back when absent or invalid. */
-export function intFlag(
-  value: string | boolean | undefined,
-  fallback: number,
-): number {
-  if (typeof value !== "string") return fallback;
-  const n = Number.parseInt(value, 10);
-  return Number.isFinite(n) ? n : fallback;
-}
-
-/** Collect every value of a repeatable flag (`--set a=1 --set b=2`) from raw args. */
-export function collectFlag(args: string[], name: string): string[] {
-  const flag = `--${name}`;
-  const eq = `${flag}=`;
-  const out: string[] = [];
-  for (let i = 0; i < args.length; i++) {
-    if (
-      args[i] === flag &&
-      i + 1 < args.length &&
-      !args[i + 1].startsWith("--")
-    ) {
-      out.push(args[++i]);
-    } else if (args[i].startsWith(eq)) {
-      out.push(args[i].slice(eq.length));
-    }
-  }
-  return out;
-}
-
 /** Parse a comma-separated `--fields a,b,c` flag into a trimmed, non-empty list. */
 export function listFlag(value: string | boolean | undefined): string[] {
   if (typeof value !== "string") return [];

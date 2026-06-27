@@ -61,4 +61,11 @@ describe("apiCommand", () => {
       apiCommand(["post", "v1/projects", "--body", "{nope"]),
     ).rejects.toBeInstanceOf(AxiError);
   });
+
+  it("rejects a body on a GET request", async () => {
+    await expect(
+      apiCommand(["v1/projects", "--body", "{}"]),
+    ).rejects.toBeInstanceOf(AxiError);
+    expect(api).not.toHaveBeenCalled();
+  });
 });

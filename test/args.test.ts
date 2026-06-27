@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  collectFlag,
-  intFlag,
-  listFlag,
-  parseArgs,
-  strFlag,
-} from "../src/args.js";
+import { listFlag, parseArgs, strFlag } from "../src/args.js";
 
 describe("parseArgs", () => {
   it("splits positionals from flags and handles =, value, and bool forms", () => {
@@ -26,29 +20,11 @@ describe("parseArgs", () => {
   });
 });
 
-describe("strFlag / intFlag", () => {
+describe("strFlag", () => {
   it("reads strings and ignores booleans", () => {
     expect(strFlag("x")).toBe("x");
     expect(strFlag(true)).toBeUndefined();
     expect(strFlag(undefined)).toBeUndefined();
-  });
-
-  it("parses ints with a fallback", () => {
-    expect(intFlag("10", 1)).toBe(10);
-    expect(intFlag("nope", 1)).toBe(1);
-    expect(intFlag(true, 7)).toBe(7);
-  });
-});
-
-describe("collectFlag", () => {
-  it("collects repeated --flag value and --flag=value forms", () => {
-    expect(
-      collectFlag(["--set", "A=1", "--set=B=2", "--other", "x"], "set"),
-    ).toEqual(["A=1", "B=2"]);
-  });
-
-  it("ignores a trailing flag with no value", () => {
-    expect(collectFlag(["--set"], "set")).toEqual([]);
   });
 });
 

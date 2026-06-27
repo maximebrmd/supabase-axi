@@ -36,5 +36,15 @@ describe("dbCommand", () => {
     expect(out.truncated).toBe(true);
     expect(out.chars).toBe(2000);
     expect(out.output).toHaveLength(1500);
+    expect(out.help[0]).toContain("--full");
+  });
+
+  it("returns the full dump with --full and strips the flag", async () => {
+    text.mockResolvedValue("x".repeat(2000));
+    const out: any = await dbCommand(["dump", "--data-only", "--full"]);
+    expect(text.mock.calls[0][0]).toEqual(["db", "dump", "--data-only"]);
+    expect(out.truncated).toBeUndefined();
+    expect(out.output).toHaveLength(2000);
+    expect(out.help[0]).not.toContain("--full");
   });
 });

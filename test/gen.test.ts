@@ -62,6 +62,21 @@ describe("genCommand", () => {
     const out: any = await genCommand(["types", "--linked"]);
     expect(out.truncated).toBe(true);
     expect(out.chars).toBe(2000);
-    expect(out.help[0]).toContain("Redirect stdout");
+    expect(out.types).toHaveLength(1500);
+    expect(out.help[0]).toContain("--full");
+  });
+
+  it("returns untruncated output with --full and strips the flag", async () => {
+    text.mockResolvedValue("y".repeat(2000));
+    const out: any = await genCommand(["types", "--linked", "--full"]);
+    expect(text.mock.calls[0][0]).toEqual([
+      "gen",
+      "types",
+      "typescript",
+      "--linked",
+    ]);
+    expect(out.truncated).toBeUndefined();
+    expect(out.types).toHaveLength(2000);
+    expect(out.help[0]).toContain("database.types.ts");
   });
 });
