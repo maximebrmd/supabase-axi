@@ -1,0 +1,1 @@
+{"pass": true, "reason": "The agent used supabase-axi db dump to retrieve the schema, found the exact function definition showing `public.post_comment_count(p_post_id bigint) RETURNS integer`, and correctly reported that it returns an integer. The answer matches the known facts completely."}

@@ -1,0 +1,1 @@
+{"pass": true, "reason": "The agent ran the appropriate SQL query against the database and correctly identified that the `posts` table has a `view_count` column, which matches the known fact."}

@@ -1,0 +1,1 @@
+{"pass": true, "reason": "The agent queried the information_schema.columns table with appropriate SQL, received the correct result showing the 'posts' table has a view_count column, and reported the correct answer."}

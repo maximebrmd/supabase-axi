@@ -1,0 +1,96 @@
+# Benchmark conditions — each defines how the agent accesses the LOCAL Supabase
+# stack (fixtures/demo). All three hit the same running stack.
+#
+# allowed_tools is passed verbatim to `claude --allowedTools`. The cli and axi
+# conditions get a shell (Bash) plus read tools; the mcp condition gets ONLY the
+# read-only Supabase MCP tools (no Bash) so it genuinely exercises the MCP
+# interface rather than falling back to the CLI.
+
+conditions:
+  cli:
+    name: "supabase CLI (raw)"
+    tool: supabase
+    allowed_tools: ["Bash", "Read", "Glob", "Grep"]
+    agents_md: |
+      # Tools
+
+      You are working inside a local Supabase project directory. A local
+      Supabase stack is already running. Use the official `supabase` CLI for all
+      Supabase operations. Run `supabase --help` (and `supabase <command>
+      --help`) to discover subcommands and flags.
+
+      Notes:
+      - For database/stack operations against the running local stack, use the
+        `--local` flag where applicable (e.g. `supabase db dump --local`,
+        `supabase migration list --local`, `supabase gen types typescript
+        --local`).
+      - `supabase status` shows the local stack's URLs and keys.
+      - This is a read-only investigation. Do NOT modify the database, reset, or
+        deploy anything.
+
+  axi:
+    name: "supabase-axi (AXI wrapper)"
+    tool: supabase-axi
+    allowed_tools: ["Bash", "Read", "Glob", "Grep"]
+    agents_md: |
+      # Tools
+
+      You are working inside a local Supabase project directory. A local
+      Supabase stack is already running. Use `supabase-axi` for Supabase
+      operations — it wraps the official `supabase` CLI with token-efficient,
+      structured TOON output, pre-computed summaries, and contextual `help:`
+      hints. Run `supabase-axi --help` (and `supabase-axi <command>`) to
+      discover commands.
+
+      Notes:
+      - Flags after a subcommand are forwarded to the underlying `supabase` CLI
+        verbatim, so you can pass `--local` where applicable (e.g.
+        `supabase-axi db dump --local`, `supabase-axi gen types --local`).
+      - `supabase-axi status` shows the local stack's URLs and keys.
+      - Output is TOON; lists are minimal by default — pass `--full` or
+        `--fields <list>` to widen, and `--full` to expand previewed blobs.
+      - This is a read-only investigation. Do NOT modify the database, reset, or
+        deploy anything.
+
+  mcp:
+    name: "Supabase MCP server"
+    tool: mcp
+    use_mcp: true
+    # Hard-block every shell/file/agent tool so this condition is genuinely
+    # MCP-only (no falling back to `find`/`ls`/`supabase`). ToolSearch stays
+    # allowed so the agent can load the deferred MCP tool schemas.
+    disallowed_tools:
+      - "Bash"
+      - "Glob"
+      - "Grep"
+      - "Read"
+      - "Edit"
+      - "Write"
+      - "NotebookEdit"
+      - "Agent"
+      - "WebFetch"
+      - "WebSearch"
+    allowed_tools:
+      - "mcp__supabase__list_tables"
+      - "mcp__supabase__list_extensions"
+      - "mcp__supabase__list_migrations"
+      - "mcp__supabase__execute_sql"
+      - "mcp__supabase__generate_typescript_types"
+      - "mcp__supabase__get_project_url"
+      - "mcp__supabase__get_publishable_keys"
+      - "mcp__supabase__get_advisors"
+      - "mcp__supabase__get_logs"
+      - "mcp__supabase__search_docs"
+    agents_md: |
+      # Tools
+
+      A Supabase MCP server is registered (the official server, served by the
+      local Supabase stack). Use its MCP tools for all Supabase operations.
+      Available tools include: `list_tables`, `list_extensions`,
+      `list_migrations`, `execute_sql` (run read-only SQL),
+      `generate_typescript_types`, `get_project_url`, `get_publishable_keys`,
+      `get_advisors`, `get_logs`, and `search_docs`.
+
+      IMPORTANT: You do NOT have shell access. Use the MCP tools exclusively.
+      This is a read-only investigation — only run SELECT/read queries; do not
+      modify the database.

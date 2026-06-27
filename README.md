@@ -133,6 +133,35 @@ supabase-axi follows the [AXI](https://github.com/kunchenguid/axi) conventions, 
 - **Structured errors** — failures carry a `code` (`SUPABASE_NOT_INSTALLED`, `AUTH_REQUIRED`, `NOT_LINKED`, `DOCKER_REQUIRED`, `OBJECT_NOT_FOUND`, `VALIDATION_ERROR`) and actionable suggestions. Exit codes: `0` success, `1` error, `2` usage.
 - **Single boundary** — `src/supa.ts` is the only module that shells out to `supabase` (or hits the Management API), which keeps the command layer pure and the test suite hermetic at 100% coverage.
 
+## Benchmark
+
+[`bench/`](./bench) is a self-contained harness that pits three ways of driving
+Supabase against the **same local `supabase start` stack** (a synthetic blog
+schema — no real data): the raw `supabase` CLI, `supabase-axi`, and the official
+**Supabase MCP server** the local stack exposes at `<api_url>/mcp`. The agent
+and the LLM judge are both the `claude` CLI (`claude-sonnet-4-6`); each of 10
+read-only tasks runs 3× per condition (90 runs).
+
+Headline numbers from a real run ([full report](./bench/published-results/report.md), [methodology](./bench/published-results/STUDY.md)):
+
+| Condition | Success% | Avg Input Tokens | Avg Output Tokens | Avg Cost | Avg Turns |
+| --------- | -------- | ---------------- | ----------------- | -------- | --------- |
+| `cli` (raw `supabase`) | 100% | 51,317 | 344 | $0.0310 | 2 |
+| `mcp` (Supabase MCP) | 90% | 56,500 | 670 | $0.0542 | 4 |
+| `axi` (`supabase-axi`) | 97% | 127,826 | 693 | $0.0880 | 6 |
+
+An honest result worth surfacing: on these **raw database-introspection** tasks
+the bare `supabase` CLI is the most token-efficient and reliable — most
+questions collapse to a single `supabase db dump --local` + grep, leaving little
+for a wrapper to improve. `supabase-axi` costs more here because it has no direct
+"query the database" command, so the agent explores (`db dump`, `--full`, grep)
+across more turns; its AXI strengths (pre-computed summaries, structured status,
+`help:` hints) help most on *list-and-summarize* operations rather than schema
+introspection. The Supabase MCP is competitive on pure DB queries but has no
+Edge-Functions tool, which is its only failing task. See the
+[study](./bench/published-results/STUDY.md) for the full per-task breakdown and
+caveats.
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md). Pull requests to `main` must be raised through [`no-mistakes`](https://github.com/kunchenguid/no-mistakes).

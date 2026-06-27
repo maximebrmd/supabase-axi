@@ -1,0 +1,4 @@
+{
+  "task_success": true,
+  "details": "The agent correctly identified 2 migrations by listing the local migration files directory, and accurately reported the most recent migration as 20250101000100_rls_policies, matching the known facts exactly."
+}

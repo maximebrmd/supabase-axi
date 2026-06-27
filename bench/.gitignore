@@ -1,0 +1,10 @@
+# Dependencies & build output
+node_modules/
+dist/
+
+# Live run artifacts (the committed copy lives in published-results/)
+results/
+
+# Supabase local stack scratch
+fixtures/demo/supabase/.branches/
+fixtures/demo/supabase/.temp/

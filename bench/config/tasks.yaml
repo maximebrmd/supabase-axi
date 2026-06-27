@@ -1,0 +1,92 @@
+# Benchmark tasks — all read-only, against the local Supabase stack (fixtures/demo).
+#
+# The demo schema is a small synthetic blog domain (see bench/README.md):
+#   authors, posts, comments, tags, post_tags  (+ RLS policies, an index,
+#   a SQL function `post_comment_count`, and two edge functions).
+#
+# Grading uses an LLM judge (claude-sonnet-4-6). `grading_hint` gives the judge
+# the known correct answer keyed to the demo schema.
+
+tasks:
+  # ── Single-step schema/data retrieval ──────────────────────────
+
+  list_tables:
+    category: single_step
+    prompt: >
+      List all the tables in the public schema of the database and report how
+      many there are.
+    grading:
+      grading_hint: "There are exactly 5 tables in the public schema: authors, posts, comments, tags, and post_tags. The agent must run a tool/command to fetch them, not guess."
+
+  table_columns:
+    category: single_step
+    prompt: >
+      Report the column names and their data types for the `posts` table.
+    grading:
+      grading_hint: "posts columns: id (bigint), author_id (bigint), title (text), slug (text), body (text), status (text), view_count (integer), published_at (timestamptz/timestamp with time zone), created_at (timestamptz). Reporting the core columns with correct types passes; minor type-naming differences (e.g. int8 vs bigint) are acceptable."
+
+  find_column:
+    category: single_step
+    prompt: >
+      Which table in the public schema has a column named `view_count`? Report
+      the table name.
+    grading:
+      grading_hint: "The `view_count` column is on the `posts` table only."
+
+  count_authors:
+    category: single_step
+    prompt: >
+      How many authors are in the database, and what are their display names?
+    grading:
+      grading_hint: "There are 4 authors with display names: Ada Lovelace, Grace Hopper, Alan Turing, Katherine Johnson."
+
+  latest_migration:
+    category: single_step
+    prompt: >
+      How many database migrations does this project have, and what is the
+      version/name of the most recent one?
+    grading:
+      grading_hint: "There are 2 migrations: 20250101000000 (init_blog_schema) and 20250101000100 (rls_policies). The most recent is 20250101000100_rls_policies."
+
+  list_functions:
+    category: single_step
+    prompt: >
+      List the Supabase Edge Functions defined in this project and report their
+      names.
+    grading:
+      grading_hint: "There are 2 edge functions: hello-world and post-stats (directories under supabase/functions/). Note: a database-only interface with no shell or edge-function tool cannot answer this and should be marked as not completed."
+
+  # ── Multi-step chaining / structural reasoning ─────────────────
+
+  fk_relationships:
+    category: multi_step
+    prompt: >
+      Which tables have a foreign key that references the `authors` table?
+      Report the referencing tables and their columns.
+    grading:
+      grading_hint: "Two foreign keys reference authors(id): posts.author_id and comments.author_id. Both referencing tables (posts and comments) must be reported."
+
+  rls_policies:
+    category: multi_step
+    prompt: >
+      List the Row Level Security (RLS) policies defined on the `posts` table
+      and briefly describe what each one allows.
+    grading:
+      grading_hint: "posts has 2 RLS policies, both SELECT: 'Published posts are viewable by everyone' (USING status = 'published') and 'Authors can view their own posts' (USING auth.uid() IS NOT NULL). Reporting both policy names and that they govern SELECT/read access passes."
+
+  gen_types_field:
+    category: multi_step
+    prompt: >
+      Generate the TypeScript types for the database. In the generated types,
+      what is the TypeScript type of the `view_count` field on the `posts`
+      table's Row?
+    grading:
+      grading_hint: "view_count is `number` in the generated TypeScript types (it is an integer column)."
+
+  sql_function:
+    category: multi_step
+    prompt: >
+      Is there a database function (stored routine) named `post_comment_count`
+      in the public schema? If so, what type of value does it return?
+    grading:
+      grading_hint: "Yes, public.post_comment_count(p_post_id bigint) is a SQL function that returns an integer (the count of comments for a given post)."

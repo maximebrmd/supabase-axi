@@ -1,0 +1,4 @@
+{
+  "task_success": true,
+  "details": "The agent ran `supabase-axi gen types --local --full` to generate TypeScript types, found the `view_count` field in the `posts` table's `Row` definition, and correctly reported its type as `number`, which matches the known fact."
+}

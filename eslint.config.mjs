@@ -4,7 +4,8 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: ["dist/**", "node_modules/**"],
+    // bench/ is a separate sub-package with its own toolchain (see bench/).
+    ignores: ["dist/**", "node_modules/**", "bench/**"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,

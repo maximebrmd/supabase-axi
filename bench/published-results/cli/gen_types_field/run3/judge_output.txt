@@ -1,0 +1,1 @@
+{"pass": true, "reason": "The agent ran `supabase gen types typescript --local` and correctly identified that `view_count` on the `posts` table's Row is typed as `number`, which matches the known fact. The command output clearly shows `view_count: number` in the posts Row definition."}

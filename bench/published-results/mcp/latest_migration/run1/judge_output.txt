@@ -1,0 +1,1 @@
+{"pass": true, "reason": "The agent correctly used the mcp__supabase__list_migrations tool to fetch the migrations list, and accurately reported 2 migrations with the correct versions/names, identifying 20250101000100_rls_policies as the most recent migration."}

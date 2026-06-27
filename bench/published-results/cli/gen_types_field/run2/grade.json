@@ -1,0 +1,4 @@
+{
+  "task_success": true,
+  "details": "The agent ran `supabase gen types typescript --local` and correctly identified that `view_count` on the `posts` table's Row has TypeScript type `number`, which matches the known fact."
+}

@@ -1,0 +1,4 @@
+# Marks bench/ as its own pnpm workspace root, isolated from the parent
+# supabase-axi package so its dev dependencies never affect the main build.
+allowBuilds:
+  esbuild: true
