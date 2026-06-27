@@ -32,7 +32,7 @@ Use supabase-axi whenever a task touches Supabase: listing projects or fetching 
 1. Run `npx -y supabase-axi` with no arguments for a content-first overview of your projects (and local migrations when run from a linked directory).
 2. `projects list` shows your projects; `projects get <ref>` adds API keys and connection info (the REST URL).
 3. `link --project-ref <ref>` links the current directory so `db`, `migration`, `functions`, and `gen` target that project.
-4. `db push` applies local migrations remotely; `db pull` imports the remote schema; `db diff` prints pending SQL; `db dump` exports the schema; `db reset` rebuilds the LOCAL database.
+4. `db push` applies local migrations remotely; `db pull` imports the remote schema; `db diff` prints pending SQL; `db dump` exports the schema; `db reset` rebuilds the LOCAL database; `db query "<sql>"` runs SQL against the linked project and returns the rows.
 5. `migration list` shows versions; `migration new <name>` scaffolds one; `migration up` applies pending ones locally; `migration repair <version> --status applied` fixes history.
 6. `functions list` / `functions new <name>` / `functions deploy [name]` / `functions delete <name>` / `functions download <name>` manage Edge Functions.
 7. `branches list/create/get/delete` manage preview branches; `secrets list/set/unset` manage Edge Function secrets.
@@ -47,7 +47,7 @@ Use supabase-axi whenever a task touches Supabase: listing projects or fetching 
 commands[15]:
   (none)=home, whoami, projects, db, migration, functions, branches, secrets, gen, link, status, start, stop, api, setup
   projects subcommands: list, get, create
-  db subcommands: push, pull, diff, reset, dump
+  db subcommands: push, pull, diff, reset, dump, query
   migration subcommands: list, new, up, repair, squash
   functions subcommands: list, new, deploy, delete, download
   branches subcommands: list, create, get, delete, disable
@@ -63,6 +63,7 @@ Run `npx -y supabase-axi --help` for global flags, or `npx -y supabase-axi <comm
 - Lists are minimal by default — `projects list` shows ref/name/region; add `--full` or `--fields <a,b>` to widen.
 - Large blobs (`db dump`, `db diff`, `gen types`) are previewed; add `--full` to return the complete output (or pass `-f <file>` to `db dump`/`db diff` to write it straight to a file).
 - `db`, `migration up`, `gen types --local`, and `start`/`stop`/`status` act on the **local** stack or a **linked** project; link first with `link --project-ref <ref>`.
+- `db query "<sql>"` runs arbitrary SQL via the Management API (the equivalent of the Supabase MCP's execute_sql) and returns rows as a TOON table — link first, or pass `--project-ref <ref>`. Rows are capped by default; add `--full` for every row or `--limit <n>`.
 - `projects create` provisions **billable** cloud infrastructure — use it deliberately.
 - Secret values are never printed back; `secrets list` shows a digest only.
 - The `api` escape hatch uses the Management API and needs `SUPABASE_ACCESS_TOKEN` (the same token `supabase login` uses); the whole Management API is reachable through it.

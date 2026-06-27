@@ -1,4 +1,5 @@
 import { execFile, type ExecFileException } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { AxiError } from "./errors.js";
 
 // supabase-axi shells out to the official Supabase CLI (`supabase`) for every
@@ -139,6 +140,35 @@ export function mapSupaError(stderr: string, code: number): AxiError {
   }
 
   return new AxiError(message, errCode, suggestions);
+}
+
+// After `supabase link`, the CLI records the linked project ref in this file
+// under the working directory — the same source the CLI itself reads to target
+// `db`/`migration`/`gen` commands. Reading it lets Management-API commands
+// resolve the ref without an extra round-trip.
+const LINKED_REF_FILE = "supabase/.temp/project-ref";
+
+/** The linked project ref (from `supabase/.temp/project-ref`), or null. */
+export function linkedProjectRef(): string | null {
+  try {
+    const ref = readFileSync(LINKED_REF_FILE, "utf8").trim();
+    return ref || null;
+  } catch {
+    return null;
+  }
+}
+
+/** The structured error raised when no project ref can be resolved. */
+export function notLinkedError(): AxiError {
+  return new AxiError(
+    "No project ref — this directory is not linked to a Supabase project",
+    "NOT_LINKED",
+    [
+      "Run `supabase-axi link --project-ref <ref>` to link this directory",
+      "Or pass `--project-ref <ref>` to target a project directly",
+      "Run `supabase-axi projects list` to find the ref",
+    ],
+  );
 }
 
 interface MgmtOptions {
