@@ -148,11 +148,11 @@ secrets, edge functions, status, plus SQL) runs 3× per condition (99 runs).
 
 Headline numbers from a real run ([full report](./bench/published-results/report.md), [methodology](./bench/published-results/STUDY.md)):
 
-| Condition | Success% | Avg Input Tokens | Avg Output Tokens | Avg Cost | Avg Turns |
-| --------- | -------- | ---------------- | ----------------- | -------- | --------- |
-| `cli` (raw `supabase`) | 100% | 56,772 | 380 | $0.0522 | 3 |
-| `axi` (`supabase-axi@1.1.0`) | 100% | 68,329 | 438 | $0.0527 | 3 |
-| `mcp` (Supabase MCP) | 82% | 50,371 | 544 | $0.0515 | 3 |
+| Condition                    | Success% | Avg Input Tokens | Avg Output Tokens | Avg Cost | Avg Turns |
+| ---------------------------- | -------- | ---------------- | ----------------- | -------- | --------- |
+| `cli` (raw `supabase`)       | 100%     | 56,772           | 380               | $0.0522  | 3         |
+| `axi` (`supabase-axi@1.1.0`) | 100%     | 68,329           | 438               | $0.0527  | 3         |
+| `mcp` (Supabase MCP)         | 82%      | 50,371           | 544               | $0.0515  | 3         |
 
 The honest, mixed result: on Supabase's cloud-management domain `supabase-axi`
 **matches the raw CLI on reliability (100%) and total cost** ($1.74 vs $1.72
