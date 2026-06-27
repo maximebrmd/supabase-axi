@@ -1,0 +1,18 @@
+Here are the columns and data types for `public.posts`:
+
+| Column | Data Type | Nullable | Default |
+|---|---|---|---|
+| `id` | `bigint` | NO | — |
+| `author_id` | `bigint` | NO | — |
+| `title` | `text` | NO | — |
+| `slug` | `text` | NO | — |
+| `body` | `text` | YES | — |
+| `status` | `text` | NO | `'draft'` |
+| `view_count` | `integer` | NO | `0` |
+| `published_at` | `timestamp with time zone` | YES | — |
+| `created_at` | `timestamp with time zone` | NO | `now()` |
+
+9 columns total. Notable points:
+- `body` and `published_at` are the only nullable columns, suggesting a post can be saved as a draft without body content or a publish date.
+- `status` defaults to `'draft'` and `view_count` defaults to `0`.
+- `id` and `author_id` are `bigint` with no generated/sequence default visible here — likely a sequence or identity column defined at the table level.

@@ -1,0 +1,8 @@
+`public.authors` has **4 rows** with the following display names:
+
+| # | Display Name |
+|---|---|
+| 1 | Ada Lovelace |
+| 2 | Alan Turing |
+| 3 | Grace Hopper |
+| 4 | Katherine Johnson |

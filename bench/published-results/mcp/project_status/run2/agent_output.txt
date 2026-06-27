@@ -1,0 +1,10 @@
+Here are the results for the `supabase-axi-bench` project:
+
+| Field | Value |
+|---|---|
+| **Status** | `ACTIVE_HEALTHY` ✓ |
+| **Region** | `eu-central-1` |
+| **Postgres major version** | **17** (full version: `17.6.1.127`, release channel: `ga`) |
+| **Created** | 2026-06-27T12:55:08Z |
+
+The project is active and healthy, running Postgres 17 on the general availability release channel.

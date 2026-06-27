@@ -1,0 +1,15 @@
+Here are the results for the `supabase-axi-bench` project:
+
+**API URL**
+```
+https://ebwcjhmrvwekjiybhytt.supabase.co
+```
+
+**API Key Types**
+
+| Name | Type | Status |
+|------|------|--------|
+| `anon` | Legacy (JWT-based) | Active |
+| `default` | Publishable (`sb_publishable_…`) | Active |
+
+Two key types are present: a legacy `anon` key (JWT) and a modern `default` publishable key. No secret/service-role keys were returned by this endpoint (those are not exposed via publishable-key APIs).

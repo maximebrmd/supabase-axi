@@ -1,0 +1,10 @@
+There is no database table for edge-function secrets — Supabase stores those in its Management API layer, not in Postgres. The available MCP tools don't include a `list_secrets` endpoint, so here's the full picture:
+
+**Vault secrets (`vault.secrets`):** — none configured (table is empty).
+
+**Edge-function environment secrets:** not accessible through the read-only MCP tools available here. The Supabase Management API exposes these via `GET /v1/projects/{ref}/secrets`, but that endpoint is not surfaced by this MCP server.
+
+To retrieve those names you'd need one of:
+- The Supabase Dashboard → Project Settings → Edge Functions → Secrets
+- `supabase secrets list` via the CLI (requires a linked project and `SUPABASE_ACCESS_TOKEN`)
+- A direct call to the Management API with a service-role or personal access token

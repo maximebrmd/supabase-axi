@@ -1,0 +1,8 @@
+The `supabase-axi-bench` project (ref `ebwcjhmrvwekjiybhytt`) is:
+
+- **Status:** `ACTIVE_HEALTHY`
+- **Postgres major version:** `17` (full version `17.6.1.127`, GA release channel)
+- **Region:** `eu-central-1`
+- **Created:** 2026-06-27
+
+The project is active and healthy, running Postgres 17.

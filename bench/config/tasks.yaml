@@ -1,0 +1,114 @@
+# Benchmark tasks — read-only CLOUD-MANAGEMENT tasks against ONE throwaway
+# Supabase cloud project (synthetic data only; see published-results/STUDY.md).
+#
+# This is Track B: we benchmark on supabase-axi's real domain — the cloud
+# management surface (projects, keys, branches, secrets, edge functions,
+# status) plus the new `db query` / `execute_sql` SQL tasks — mirroring how the
+# gh-axi benchmark exercised GitHub management.
+#
+# The target project:
+#   name:   supabase-axi-bench
+#   ref:    <recreated per run; deleted afterward — see published-results/STUDY.md>
+#   region: eu-central-1 (Frankfurt)
+#   plan:   free
+# Its database holds the synthetic blog schema (authors, posts, comments, tags,
+# post_tags + the post_comment_count function) seeded with the demo rows
+# (4 authors: Ada Lovelace, Grace Hopper, Alan Turing, Katherine Johnson).
+#
+# All three conditions (cli, axi, mcp) hit the SAME cloud project. Grading uses
+# an LLM judge (claude-sonnet-4-6); each grading_hint is keyed to that project.
+
+tasks:
+  # ── Project / org management lookups ───────────────────────────
+
+  list_projects:
+    category: single_step
+    prompt: >
+      List the Supabase projects on this account and report the name and region
+      of the project named `supabase-axi-bench`.
+    grading:
+      grading_hint: "There is a project named supabase-axi-bench in region eu-central-1 (Frankfurt / Central EU). The agent must run a tool/command to fetch the project list, not guess."
+
+  project_ref:
+    category: single_step
+    prompt: >
+      What is the project reference (project ID) of the `supabase-axi-bench`
+      project, and which region is it hosted in?
+    grading:
+      grading_hint: "The agent must look up the project's ref (a 20-char lowercase id, as returned by the project listing) and report it along with the region eu-central-1 (Frankfurt). Reporting the ref the tools actually returned plus the eu-central-1 region passes; guessing without a lookup fails."
+
+  project_status:
+    category: multi_step
+    prompt: >
+      Find the `supabase-axi-bench` project and report its current status /
+      health (is it active and healthy?) and its Postgres major version.
+    grading:
+      grading_hint: "The project status should be ACTIVE_HEALTHY and the Postgres major version is 17. Reporting that the project is active/healthy and on Postgres 17 passes."
+
+  project_api_url:
+    category: multi_step
+    prompt: >
+      For the `supabase-axi-bench` project, report its API URL and the names of
+      the API key types it exposes (do NOT print secret key values).
+    grading:
+      grading_hint: "The API URL is https://<the project's ref>.supabase.co (REST at /rest/v1) — it must match the ref the tools return. The project exposes an anon/publishable key and a service_role/secret key. Reporting the correct URL host plus that there are anon + service_role keys passes. Printing the full secret value is not required and should not be necessary."
+
+  # ── Resource listings (branches / secrets / functions) ─────────
+
+  list_branches:
+    category: single_step
+    prompt: >
+      List the preview branches of the `supabase-axi-bench` project. How many
+      are there?
+    grading:
+      grading_hint: "The free-tier project has no preview branches (preview branches require a paid plan / explicit creation). Reporting zero / none is correct."
+
+  list_secrets:
+    category: single_step
+    prompt: >
+      List the NAMES of the secrets / function environment variables configured
+      for the `supabase-axi-bench` project. Report names only, never values.
+    grading:
+      grading_hint: "A fresh project has the default auto-injected secrets: SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_DB_URL. Reporting these names (values not required) passes. If the agent reports there are no user-defined secrets beyond the defaults, that is also acceptable."
+
+  list_edge_functions:
+    category: single_step
+    prompt: >
+      List the Edge Functions deployed to the `supabase-axi-bench` project and
+      report their names.
+    grading:
+      grading_hint: "The project has 2 deployed edge functions: hello-world and post-stats. (If the run shows none were deployed, reporting an empty list is correct — keep keyed to the actual deployed state recorded in STUDY.md.)"
+
+  # ── SQL via `db query` / `execute_sql` (Track A's new command) ──
+
+  list_tables:
+    category: single_step
+    prompt: >
+      List the tables in the public schema of the `supabase-axi-bench`
+      project's database and report how many there are.
+    grading:
+      grading_hint: "There are 5 tables in the public schema: authors, posts, comments, tags, post_tags."
+
+  query_count_authors:
+    category: multi_step
+    prompt: >
+      Run a SQL query against the `supabase-axi-bench` database: how many rows
+      are in public.authors, and what are their display names?
+    grading:
+      grading_hint: "There are 4 authors: Ada Lovelace, Grace Hopper, Alan Turing, Katherine Johnson. The agent must actually run a query (e.g. SELECT count(*) / SELECT display_name FROM authors), not guess."
+
+  query_table_columns:
+    category: multi_step
+    prompt: >
+      Run a query against the `supabase-axi-bench` database to report the column
+      names and data types of the public.posts table.
+    grading:
+      grading_hint: "posts columns: id (bigint), author_id (bigint), title (text), slug (text), body (text), status (text), view_count (integer), published_at (timestamptz), created_at (timestamptz). Minor type-naming differences (int8 vs bigint) are acceptable; the agent must query the catalog rather than guess."
+
+  query_fk_relationships:
+    category: multi_step
+    prompt: >
+      Query the `supabase-axi-bench` database: which tables have a foreign key
+      that references public.authors? Report the referencing tables and columns.
+    grading:
+      grading_hint: "Two foreign keys reference authors(id): posts.author_id and comments.author_id. Both referencing tables must be reported, based on an actual catalog query."

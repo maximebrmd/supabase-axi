@@ -1,0 +1,1 @@
+{"pass":true,"reason":"The agent used the appropriate tool (mcp__supabase__list_branches) with the correct project ID, received an empty branches array, and correctly reported 0 preview branches."}

@@ -1,7 +1,10 @@
-import { defineConfig } from "vitest/config";
+import { defineConfig, configDefaults } from "vitest/config";
 
 export default defineConfig({
   test: {
+    // bench/ is a separate sub-package with its own vitest config; never run or
+    // cover it from the main package's test suite.
+    exclude: [...configDefaults.exclude, "bench/**"],
     coverage: {
       provider: "v8",
       include: ["src/**/*.ts"],

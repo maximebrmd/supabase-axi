@@ -1,0 +1,11 @@
+The public schema has **5 tables**:
+
+| # | Table |
+|---|-------|
+| 1 | `authors` |
+| 2 | `comments` |
+| 3 | `post_tags` |
+| 4 | `posts` |
+| 5 | `tags` |
+
+This looks like a blog-style schema with authors, posts, tags, a post-tag join table, and comments.

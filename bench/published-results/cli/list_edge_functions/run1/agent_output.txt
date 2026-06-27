@@ -1,0 +1,6 @@
+The `supabase-axi-bench` project has **2 Edge Functions** deployed, both with `ACTIVE` status:
+
+| Name | Slug |
+|------|------|
+| `post-stats` | `post-stats` |
+| `hello-world` | `hello-world` |

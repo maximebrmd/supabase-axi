@@ -1,0 +1,9 @@
+The public schema has **5 tables**:
+
+| Table |
+|-------|
+| `authors` |
+| `comments` |
+| `post_tags` |
+| `posts` |
+| `tags` |

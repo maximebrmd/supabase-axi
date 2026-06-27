@@ -1,0 +1,10 @@
+The account has 4 projects. Here are the details for `supabase-axi-bench`:
+
+| Field | Value |
+|---|---|
+| **Name** | supabase-axi-bench |
+| **Region** | `eu-central-1` (EU Frankfurt) |
+| **Ref** | `ebwcjhmrvwekjiybhytt` |
+| **Status** | ACTIVE_HEALTHY |
+
+The other three projects on the account are `Signa`, `Send`, and `you-said-that`, all also in `eu-central-1`.

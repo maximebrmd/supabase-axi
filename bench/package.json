@@ -1,0 +1,24 @@
+{
+  "name": "supabase-axi-bench",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Benchmark harness comparing the raw supabase CLI, supabase-axi, and the Supabase MCP server for agent tasks against a throwaway Supabase cloud project",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "bench": "tsx src/cli.ts"
+  },
+  "dependencies": {
+    "yaml": "^2.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

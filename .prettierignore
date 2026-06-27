@@ -2,3 +2,6 @@ dist
 coverage
 pnpm-lock.yaml
 CHANGELOG.md
+
+# bench/ is a separate sub-package with its own toolchain (see bench/).
+bench

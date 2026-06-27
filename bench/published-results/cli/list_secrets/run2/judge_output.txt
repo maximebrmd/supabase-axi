@@ -1,0 +1,1 @@
+{"pass":true,"reason":"The agent ran the correct command (supabase secrets list) and correctly reported all 7 secret names from the output: SUPABASE_ANON_KEY, SUPABASE_DB_URL, SUPABASE_JWKS, SUPABASE_PUBLISHABLE_KEYS, SUPABASE_SECRET_KEYS, SUPABASE_SERVICE_ROLE_KEY, and SUPABASE_URL. The answer is complete and accurate, reporting names only without values."}

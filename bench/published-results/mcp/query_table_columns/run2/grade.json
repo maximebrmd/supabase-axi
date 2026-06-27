@@ -1,0 +1,4 @@
+{
+  "task_success": true,
+  "details": "The agent queried the information_schema.columns catalog (not guessing), retrieved all 9 columns with correct names and data types (id/bigint, author_id/bigint, title/text, slug/text, body/text, status/text, view_count/integer, published_at/timestamp with time zone, created_at/timestamp with time zone), and presented a complete, accurate result matching the known facts."
+}

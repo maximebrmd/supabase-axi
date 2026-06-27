@@ -1,0 +1,8 @@
+Two tables have foreign keys referencing `public.authors`:
+
+| Referencing table | Referencing column | Referenced table |
+|---|---|---|
+| `posts` | `author_id` | `authors` |
+| `comments` | `author_id` | `authors` |
+
+Both `posts.author_id` and `comments.author_id` carry FK constraints pointing at `public.authors`.

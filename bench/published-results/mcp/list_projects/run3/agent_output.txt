@@ -1,0 +1,11 @@
+The account has 4 projects. Here are the details for `supabase-axi-bench`:
+
+| Field | Value |
+|-------|-------|
+| **Name** | `supabase-axi-bench` |
+| **Region** | `eu-central-1` |
+| **Project ref** | `ebwcjhmrvwekjiybhytt` |
+| **Status** | `ACTIVE_HEALTHY` |
+| **Created** | 2026-06-27 |
+
+All 4 projects on the account are in `eu-central-1`.

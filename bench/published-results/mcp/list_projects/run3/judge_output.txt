@@ -1,0 +1,1 @@
+{"pass":true,"reason":"The agent correctly called mcp__supabase__list_projects to fetch the project list, found the supabase-axi-bench project in the results, and accurately reported its name (supabase-axi-bench) and region (eu-central-1), which matches the known facts."}

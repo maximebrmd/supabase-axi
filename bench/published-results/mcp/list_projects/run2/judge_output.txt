@@ -1,0 +1,1 @@
+{"pass":true,"reason":"The agent used the mcp__supabase__list_projects tool to fetch the actual project list, correctly identified the supabase-axi-bench project, and reported its name (supabase-axi-bench) and region (eu-central-1) which matches the known facts."}

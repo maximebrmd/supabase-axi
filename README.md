@@ -133,6 +133,39 @@ supabase-axi follows the [AXI](https://github.com/kunchenguid/axi) conventions, 
 - **Structured errors** — failures carry a `code` (`SUPABASE_NOT_INSTALLED`, `AUTH_REQUIRED`, `NOT_LINKED`, `DOCKER_REQUIRED`, `OBJECT_NOT_FOUND`, `VALIDATION_ERROR`) and actionable suggestions. Exit codes: `0` success, `1` error, `2` usage.
 - **Single boundary** — `src/supa.ts` is the only module that shells out to `supabase` (or hits the Management API), which keeps the command layer pure and the test suite hermetic at 100% coverage.
 
+## Benchmark
+
+[`bench/`](./bench) is a self-contained harness that pits three ways of driving
+Supabase's **cloud-management surface** against the **same throwaway free-tier
+cloud project** (a synthetic blog schema — no real data): the raw `supabase`
+CLI, `supabase-axi@1.1.0` **installed globally and invoked directly** (incl. its
+`db query` command), and the official **Supabase MCP server**
+(`@supabase/mcp-server-supabase`, read-only). Both CLI binaries are installed
+system-wide and called the same way, for a fair comparison (mirrors gh-axi's
+methodology). The agent and the LLM judge are both the `claude` CLI
+(`claude-sonnet-4-6`); each of 11 read-only tasks (projects, keys, branches,
+secrets, edge functions, status, plus SQL) runs 3× per condition (99 runs).
+
+Headline numbers from a real run ([full report](./bench/published-results/report.md), [methodology](./bench/published-results/STUDY.md)):
+
+| Condition                    | Success% | Avg Input Tokens | Avg Output Tokens | Avg Cost | Avg Turns |
+| ---------------------------- | -------- | ---------------- | ----------------- | -------- | --------- |
+| `cli` (raw `supabase`)       | 100%     | 56,772           | 380               | $0.0522  | 3         |
+| `axi` (`supabase-axi@1.1.0`) | 100%     | 68,329           | 438               | $0.0527  | 3         |
+| `mcp` (Supabase MCP)         | 82%      | 50,371           | 544               | $0.0515  | 3         |
+
+The honest, mixed result: on Supabase's cloud-management domain `supabase-axi`
+**matches the raw CLI on reliability (100%) and total cost** ($1.74 vs $1.72
+across 33 runs each). It **wins clearly on the SQL tasks** — its `db query`
+command gives a one-shot "run SQL, get rows" path that's ~25–37% cheaper than
+the raw CLI (which has no direct cloud-SQL command) — but **costs more on
+detail-heavy project lookups**, where its minimal-by-default output makes the
+agent take extra turns for fields the CLI's verbose JSON returns at once. The
+Supabase MCP is competitive on cost but caps at 82%: it has no secrets tool and
+gives incomplete API-key answers. No interface dominates — each owns a category.
+See the [study](./bench/published-results/STUDY.md) for the full per-task
+breakdown and caveats.
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md). Pull requests to `main` must be raised through [`no-mistakes`](https://github.com/kunchenguid/no-mistakes).

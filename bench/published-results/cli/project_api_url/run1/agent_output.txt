@@ -1,0 +1,17 @@
+Here's the summary for the `supabase-axi-bench` project:
+
+**API URL**
+```
+https://ebwcjhmrvwekjiybhytt.supabase.co
+```
+
+**API Key Types**
+
+| Name | Type | Description |
+|---|---|---|
+| `anon` | `legacy` | Legacy anonymous key (for public/client-side access) |
+| `service_role` | `legacy` | Legacy service-role key (for privileged server-side access) |
+| `default` | `publishable` | New-style publishable key (safe for client-side use) |
+| `default` | `secret` | New-style secret key (privileged, server-side only) |
+
+The project exposes four key types: the two classic legacy keys (`anon` and `service_role`) plus the newer `publishable` and `secret` key pair introduced in Supabase's updated API key model. No secret values were printed.
