@@ -172,8 +172,9 @@ interface dominates; each owns a category.
   present).
 - A separate `claude-sonnet-4-6` judge evaluates the trajectory against the
   task's `grading_hint` and returns `{pass, reason}`.
-- All trajectories and grades are archived under each `{condition}/{task}/run{N}/`
-  (with cloud key material redacted).
+- All trajectories and grades are written (with cloud key material redacted) to a
+  gitignored `results/{condition}/{task}/run{N}/` directory; the canonical
+  `results.jsonl` carries every reported metric (see [Files](#files)).
 
 ## Reproducing the target
 
@@ -210,15 +211,11 @@ Each throwaway project is **deleted after the benchmark**
   derived from it.
 - `report.md` — Summary tables with per-task breakdowns
 - `report.csv` — Full CSV export for analysis
-- `{condition}/{task}/run{N}/` — Per-run artifacts:
-  - `agent_output.txt` — the agent's output/answer
-  - `grade.json` — Judge verdict (`{task_success, details}`)
-  - `judge_output.txt` / `judge_model.txt` — Judge verdict and model
 
-> Note on the per-run artifacts: the `axi` directories hold the real captured
-> output from the (re-measured) global-binary run. The `cli` and `mcp`
-> directories are **reconstructed from the canonical `results.jsonl`** — their
-> original stream-json trajectories were lost to a cleanup-tooling mishap, so
-> they hold the final answer + verdict rather than the full tool-by-tool
-> trajectory. All reported metrics are unaffected; they always came from
-> `results.jsonl`.
+These four files are the only committed benchmark output. When you run the
+matrix locally, the runner also writes raw per-run artifacts to a **gitignored**
+`results/{condition}/{task}/run{N}/` directory (`agent_output.txt`,
+`grade.json`, `judge_output.txt`, `judge_model.txt`) — useful for spot-checking
+a single trajectory, but never committed. Every reported metric is derived from
+the canonical `results.jsonl`, so the per-run files are not needed to reproduce
+or audit the numbers.

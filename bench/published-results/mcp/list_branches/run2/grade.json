@@ -1,4 +1,0 @@
-{
-  "task_success": true,
-  "details": "The agent called the appropriate tool (mcp__supabase__list_branches) with the correct project ID, received an empty branches array, and correctly reported that the project has 0 preview branches."
-}

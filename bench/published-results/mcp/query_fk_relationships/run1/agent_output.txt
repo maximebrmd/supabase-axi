@@ -1,8 +1,0 @@
-Two tables reference `public.authors`:
-
-| Referencing table | Referencing column | Referenced column | Constraint name |
-|---|---|---|---|
-| `public.posts` | `author_id` | `id` | `posts_author_id_fkey` |
-| `public.comments` | `author_id` | `id` | `comments_author_id_fkey` |
-
-Both use an `author_id` → `authors.id` foreign key. The `information_schema` query returned nothing likely because of a Postgres quirk with how `constraint_column_usage` resolves cross-table references; the `pg_catalog` query is the authoritative source.

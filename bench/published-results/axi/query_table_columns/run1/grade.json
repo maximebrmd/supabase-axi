@@ -1,4 +1,0 @@
-{
-  "task_success": true,
-  "details": "The agent ran an actual query against the information_schema.columns catalog (not a guess), retrieved all 9 columns with correct names and data types (bigint, text, integer, timestamp with time zone), and presented a complete, accurate result matching the known facts. Minor type-name differences like 'timestamp with time zone' vs 'timestamptz' are explicitly noted as acceptable."
-}
