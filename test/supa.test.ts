@@ -5,11 +5,18 @@ vi.mock("node:child_process", () => ({
   execFile: (...args: unknown[]) => execFileMock(...args),
 }));
 
+const readFileMock = vi.fn();
+vi.mock("node:fs", () => ({
+  readFileSync: (...args: unknown[]) => readFileMock(...args),
+}));
+
 import {
+  linkedProjectRef,
   mapMgmtError,
   mapSupaError,
   mgmtApi,
   mgmtAuthError,
+  notLinkedError,
   supaJson,
   supaNotInstalledError,
   supaText,
@@ -302,5 +309,33 @@ describe("mgmtAuthError", () => {
     expect(mgmtAuthError().suggestions.join(" ")).toMatch(
       /SUPABASE_ACCESS_TOKEN/,
     );
+  });
+});
+
+describe("linkedProjectRef", () => {
+  it("reads and trims the ref from the link file", () => {
+    readFileMock.mockReturnValue("abcdefghijklmnop\n");
+    expect(linkedProjectRef()).toBe("abcdefghijklmnop");
+    expect(readFileMock.mock.calls[0][0]).toBe("supabase/.temp/project-ref");
+  });
+
+  it("returns null when the file is empty", () => {
+    readFileMock.mockReturnValue("  \n");
+    expect(linkedProjectRef()).toBeNull();
+  });
+
+  it("returns null when the file is missing", () => {
+    readFileMock.mockImplementation(() => {
+      throw Object.assign(new Error("nope"), { code: "ENOENT" });
+    });
+    expect(linkedProjectRef()).toBeNull();
+  });
+});
+
+describe("notLinkedError", () => {
+  it("carries link guidance and a NOT_LINKED code", () => {
+    const e = notLinkedError();
+    expect(e.code).toBe("NOT_LINKED");
+    expect(e.suggestions.join(" ")).toMatch(/--project-ref/);
   });
 });

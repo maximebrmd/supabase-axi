@@ -12,7 +12,7 @@ Use `supabase-axi` for Supabase: list & inspect projects and their API keys/conn
 ## Repo conventions for contributors
 
 - Node 20+, TypeScript, ESM-only; `pnpm` for everything.
-- `src/supa.ts` is the only module that shells out to `supabase` (or hits the Management API). Commands import from it and return plain objects the SDK renders to TOON. Each command ends with a `help:` array.
-- `pnpm test` enforces 100% coverage. Mock `../src/supa.js` in command tests; mock `node:child_process`/`fetch` in `supa.test.ts`. Never call the real CLI/network in tests.
+- `src/supa.ts` is the only module that shells out to `supabase` (or hits the Management API). Commands import from it and return plain objects the SDK renders to TOON. Each command ends with a `help:` array. The linked project ref is resolved by `linkedProjectRef()`, which reads `supabase/.temp/project-ref` (the file the Supabase CLI writes on `link`); commands that need a ref fall back to a `--project-ref` flag and otherwise raise `notLinkedError()`.
+- `pnpm test` enforces 100% coverage. Mock `../src/supa.js` in command tests; mock `node:child_process`/`node:fs`/`fetch` in `supa.test.ts`. Never call the real CLI/network in tests.
 - `skills/supabase-axi/SKILL.md` is generated from `src/skill.ts` — run `pnpm run build:skill` and commit; never hand-edit it. Likewise never hand-edit `CHANGELOG.md` or `.release-please-manifest.json`.
 - Before pushing: `pnpm run build && pnpm run build:skill && pnpm run lint && pnpm test`.

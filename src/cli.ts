@@ -33,6 +33,7 @@ examples:
   supabase-axi projects list
   supabase-axi projects get <ref>
   supabase-axi db push --dry-run
+  supabase-axi db query "select count(*) from public.todos"
   supabase-axi migration list
   supabase-axi functions deploy <name>
   supabase-axi gen types --linked
