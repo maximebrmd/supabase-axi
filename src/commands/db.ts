@@ -1,7 +1,12 @@
 import { parseArgs, strFlag } from "../args.js";
 import { usage } from "../errors.js";
 import { asArray, preview, type Obj } from "../format.js";
-import { linkedProjectRef, mgmtApi, notLinkedError, supaText } from "../supa.js";
+import {
+  linkedProjectRef,
+  mgmtApi,
+  notLinkedError,
+  supaText,
+} from "../supa.js";
 
 export const DB_HELP = `usage: supabase-axi db <push|pull|diff|reset|dump> [flags] [--full]
        supabase-axi db query "<sql>" [--project-ref <ref>] [--limit <n>] [--full]

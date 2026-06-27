@@ -111,7 +111,7 @@ Run `supabase-axi --help` for the full command list, or `supabase-axi <command> 
 | `(none)` / home                                   | Content-first overview: your projects, plus local migrations when run from a linked directory. |
 | `whoami`                                          | Confirm the active identity by listing reachable projects; `AUTH_REQUIRED` when not logged in. |
 | `projects <list\|get\|create>`                    | List projects, fetch one's keys + connection info, or create a new cloud project.              |
-| `db <push\|pull\|diff\|reset\|dump\|query>`       | Apply/import/diff/rebuild/export the database, or run SQL and read the rows.                    |
+| `db <push\|pull\|diff\|reset\|dump\|query>`       | Apply/import/diff/rebuild/export the database, or run SQL and read the rows.                   |
 | `migration <list\|new\|up\|repair\|squash>`       | Manage migration scripts and history.                                                          |
 | `functions <list\|new\|deploy\|delete\|download>` | Manage Edge Functions.                                                                         |
 | `branches <list\|create\|get\|delete\|disable>`   | Manage preview branches.                                                                       |
