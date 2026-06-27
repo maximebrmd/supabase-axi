@@ -89,6 +89,7 @@ supabase-axi link --project-ref <ref>         # link this directory to a project
 supabase-axi db push --dry-run                # apply local migrations remotely
 supabase-axi db diff --schema public          # pending schema changes as SQL
 supabase-axi db dump --data-only              # dump the database
+supabase-axi db query "select count(*) from todos"  # run SQL, return the rows
 supabase-axi migration list                   # local & remote migration status
 supabase-axi migration new add_users_table    # scaffold a migration
 supabase-axi functions list                   # deployed Edge Functions
@@ -110,7 +111,7 @@ Run `supabase-axi --help` for the full command list, or `supabase-axi <command> 
 | `(none)` / home                                   | Content-first overview: your projects, plus local migrations when run from a linked directory. |
 | `whoami`                                          | Confirm the active identity by listing reachable projects; `AUTH_REQUIRED` when not logged in. |
 | `projects <list\|get\|create>`                    | List projects, fetch one's keys + connection info, or create a new cloud project.              |
-| `db <push\|pull\|diff\|reset\|dump>`              | Apply/import/diff/rebuild/export the database.                                                 |
+| `db <push\|pull\|diff\|reset\|dump\|query>`       | Apply/import/diff/rebuild/export the database, or run SQL and read the rows.                    |
 | `migration <list\|new\|up\|repair\|squash>`       | Manage migration scripts and history.                                                          |
 | `functions <list\|new\|deploy\|delete\|download>` | Manage Edge Functions.                                                                         |
 | `branches <list\|create\|get\|delete\|disable>`   | Manage preview branches.                                                                       |

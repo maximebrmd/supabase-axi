@@ -1,6 +1,6 @@
 # Agent instructions
 
-Use `supabase-axi` for Supabase: list & inspect projects and their API keys/connection info; push, pull, diff, reset & dump databases; manage migrations, Edge Functions, preview branches, and secrets; generate TypeScript types; link a project; drive the local stack; or call any Management API endpoint with `api`.
+Use `supabase-axi` for Supabase: list & inspect projects and their API keys/connection info; push, pull, diff, reset & dump databases; run SQL against a database with `db query`; manage migrations, Edge Functions, preview branches, and secrets; generate TypeScript types; link a project; drive the local stack; or call any Management API endpoint with `api`.
 
 - Auth: supabase-axi wraps the official Supabase CLI (`supabase`). Install it (`brew install supabase/tap/supabase`) and run `supabase login` (browser; token stored locally, acts as you). For headless use or the `api` escape hatch, export `SUPABASE_ACCESS_TOKEN`.
 - Run `supabase-axi` (no args) for a content-first overview of your projects; `supabase-axi --help` for commands.
