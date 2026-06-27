@@ -172,8 +172,9 @@ interface dominates; each owns a category.
   present).
 - A separate `claude-sonnet-4-6` judge evaluates the trajectory against the
   task's `grading_hint` and returns `{pass, reason}`.
-- All trajectories and grades are archived under each `{condition}/{task}/run{N}/`
-  (with cloud key material redacted).
+- All trajectories and grades are written (with cloud key material redacted) to a
+  gitignored `results/{condition}/{task}/run{N}/` directory; the canonical
+  `results.jsonl` carries every reported metric (see [Files](#files)).
 
 ## Reproducing the target
 
