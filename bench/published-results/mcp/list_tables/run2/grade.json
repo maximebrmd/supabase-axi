@@ -1,4 +1,4 @@
 {
   "task_success": true,
-  "details": "The agent used the mcp__supabase__list_tables tool to fetch the actual tables, correctly identified all 5 tables (authors, posts, comments, tags, post_tags) matching the known facts, and provided accurate counts and details without hallucinating."
+  "details": "The agent used the mcp__supabase__list_tables tool to query the public schema and correctly identified all 5 tables (authors, posts, comments, tags, post_tags) with accurate row counts, matching the known facts."
 }

@@ -1,0 +1,1 @@
+{"pass":true,"reason":"The agent used the mcp__supabase__get_project tool to retrieve the actual project data, correctly identified the status as ACTIVE_HEALTHY and the Postgres major version as 17, matching the known facts exactly."}

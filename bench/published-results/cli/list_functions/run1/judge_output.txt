@@ -1,1 +1,0 @@
-{"pass": true, "reason": "The agent correctly identified both Edge Functions (hello-world and post-stats) by using a glob tool to find index.ts files under supabase/functions/ directories. The answer is complete and accurate."}

@@ -1,4 +1,4 @@
 {
   "task_success": true,
-  "details": "The agent ran a command to query the local Supabase database, correctly identified all 5 tables (authors, comments, post_tags, posts, tags) in the public schema, and reported the correct count of 5."
+  "details": "The agent successfully queried the database using `supabase db query --linked` and correctly identified all 5 tables (authors, comments, post_tags, posts, tags) in the public schema, matching the known facts exactly."
 }

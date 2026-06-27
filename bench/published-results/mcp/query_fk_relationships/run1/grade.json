@@ -1,0 +1,4 @@
+{
+  "task_success": true,
+  "details": "The agent queried the database using pg_catalog (after an initial information_schema attempt returned empty), correctly identified both foreign keys referencing public.authors: posts.author_id and comments.author_id, with constraint names posts_author_id_fkey and comments_author_id_fkey respectively. The answer is complete and matches the known facts."
+}

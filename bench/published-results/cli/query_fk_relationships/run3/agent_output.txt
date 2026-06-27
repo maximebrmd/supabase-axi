@@ -1,0 +1,8 @@
+Two tables have a foreign key referencing `public.authors`:
+
+| Referencing Table | Referencing Column |
+|---|---|
+| `public.posts` | `author_id` |
+| `public.comments` | `author_id` |
+
+Both use an `author_id` column pointing back to `public.authors`.

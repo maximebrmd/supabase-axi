@@ -1,0 +1,1 @@
+The project **`supabase-axi-bench`** is located in region **`eu-central-1`** (EU Central, Frankfurt).

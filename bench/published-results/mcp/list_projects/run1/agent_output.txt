@@ -1,0 +1,15 @@
+The account has 4 projects. Here are the details for `supabase-axi-bench`:
+
+| Field  | Value               |
+|--------|---------------------|
+| **Name**   | `supabase-axi-bench` |
+| **Region** | `eu-central-1`       |
+
+For reference, all 4 projects are in `eu-central-1`:
+
+| Name | Status |
+|------|--------|
+| Signa | ACTIVE_HEALTHY |
+| Send | INACTIVE |
+| **supabase-axi-bench** | **ACTIVE_HEALTHY** |
+| you-said-that | INACTIVE |

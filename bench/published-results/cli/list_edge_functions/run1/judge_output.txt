@@ -1,0 +1,1 @@
+{"pass":true,"reason":"The agent ran the appropriate CLI command (`supabase functions list --project-ref ebwcjhmrvwekjiybhytt`), received real output showing both functions, and correctly reported both `hello-world` and `post-stats` as deployed Edge Functions with ACTIVE status — matching the known facts exactly."}

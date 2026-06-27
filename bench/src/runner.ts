@@ -1,24 +1,32 @@
 /**
- * Benchmark runner — executes agent tasks against the local Supabase stack and
- * grades the results.
+ * Benchmark runner — executes agent tasks against a single throwaway Supabase
+ * CLOUD project and grades the results.
  *
  * Per RunSpec:
  * 1. Create artifact dir: results/{condition}/{task}/run{N}/
  * 2. Compose the prompt (condition AGENTS.md preamble + task prompt)
- * 3. Run the `claude` agent in the fixture project dir
+ * 3. Run the `claude` agent in the fixture project dir (linked to the cloud project)
  * 4. Parse stream-json output → usage metrics
  * 5. Run the grader → grade.json
  * 6. Append to results.jsonl
  *
- * All three conditions hit the SAME running local stack:
- *   - cli  → raw `supabase` CLI (Bash)
- *   - axi  → `supabase-axi` (Bash; resolved from bench/bin shim → local build)
- *   - mcp  → the official Supabase MCP server exposed by the local stack at
- *            <api_url>/mcp (no shell access — genuinely exercises MCP tools)
+ * All three conditions hit the SAME cloud project (BENCH_PROJECT_REF):
+ *   - cli  → raw `supabase` CLI (Bash), against the linked project
+ *   - axi  → `supabase-axi` (Bash) — the published v1.1.0 release installed
+ *            GLOBALLY (`npm i -g supabase-axi@1.1.0`) and invoked directly, on
+ *            equal footing with the raw CLI (mirrors gh-axi's methodology). It
+ *            includes the `db query` SQL command.
+ *   - mcp  → the official Supabase MCP server (`@supabase/mcp-server-supabase`,
+ *            read-only) spawned as a stdio subprocess. No shell access — it
+ *            genuinely exercises the MCP tools.
+ *
+ * Auth: the agent and the MCP server read SUPABASE_ACCESS_TOKEN from the
+ * environment. The runner NEVER reads, logs, or persists the token value — it
+ * only forwards process.env. Export it in the shell before running the matrix.
  */
 
 import { spawnSync, execSync } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync, appendFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, appendFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import type { RunSpec, RunResult, ConditionDef, TaskDef } from "./types.js";
@@ -28,28 +36,28 @@ import { grade } from "./grader.js";
 const BENCH_ROOT = resolve(import.meta.dirname, "..");
 const RESULTS_DIR = join(BENCH_ROOT, "results");
 const FIXTURE_DIR = join(BENCH_ROOT, "fixtures", "demo");
-const BIN_DIR = join(BENCH_ROOT, "bin");
 
-/** API URL of the local stack; the Supabase MCP lives at `${API_URL}/mcp`. */
-const API_URL = process.env.BENCH_API_URL ?? "http://127.0.0.1:55321";
-const MCP_URL = `${API_URL}/mcp`;
+/** Project ref of the throwaway cloud project all conditions target (set via env). */
+export const PROJECT_REF = process.env.BENCH_PROJECT_REF ?? "";
 
 const AGENT_TIMEOUT_MS = 5 * 60 * 1000;
 
-/** Bring the local stack up if it is not already running (idempotent). */
-export function ensureStackUp(): void {
-  console.log("  Ensuring local Supabase stack is up...");
-  execSync("supabase start", { cwd: FIXTURE_DIR, stdio: "pipe" });
-}
-
-/** Tear the local stack down. */
-export function stopStack(): void {
-  console.log("  Stopping local Supabase stack...");
-  try {
-    execSync("supabase stop", { cwd: FIXTURE_DIR, stdio: "pipe" });
-  } catch {
-    // best-effort
+/**
+ * Verify cloud auth + project reachability before a run. Requires
+ * SUPABASE_ACCESS_TOKEN in the environment.
+ */
+export function ensureProjectReachable(): void {
+  if (!process.env.SUPABASE_ACCESS_TOKEN) {
+    throw new Error(
+      "SUPABASE_ACCESS_TOKEN is not set. Export it in the shell before running " +
+        "the matrix so it propagates to the agent and MCP subprocesses.",
+    );
   }
+  if (!PROJECT_REF) {
+    throw new Error("BENCH_PROJECT_REF is not set. Export the throwaway project's ref.");
+  }
+  console.log(`  Verifying cloud project ${PROJECT_REF} is reachable...`);
+  execSync(`supabase projects list`, { stdio: "pipe" });
 }
 
 export function runOne(
@@ -121,7 +129,8 @@ function extractClaudeFinalOutput(jsonl: string): string {
 
 /** Compose the prompt: condition tool preamble + the task. */
 export function composePrompt(condition: ConditionDef, task: TaskDef): string {
-  return `${condition.agents_md.trim()}\n\n---\n\nTASK:\n${task.prompt.trim()}`;
+  const preamble = condition.agents_md.replaceAll("<PROJECT_REF>", PROJECT_REF).trim();
+  return `${preamble}\n\n---\n\nTASK:\n${task.prompt.trim()}`;
 }
 
 function runAgent(
@@ -147,17 +156,27 @@ function runAgent(
   args.push("--allowedTools", ...condition.allowed_tools);
 
   // Denylist — hard-blocks tools even under --dangerously-skip-permissions.
-  // This is what keeps the `mcp` condition genuinely shell-free: without it the
-  // agent falls back to Bash (`find`/`ls`) instead of using the MCP interface.
+  // This is what keeps the `mcp` condition genuinely shell-free.
   if (condition.disallowed_tools && condition.disallowed_tools.length > 0) {
     args.push("--disallowedTools", ...condition.disallowed_tools);
   }
 
-  // MCP condition: register the local Supabase MCP server.
+  // MCP condition: register the official Supabase MCP server as a read-only
+  // stdio subprocess. It inherits SUPABASE_ACCESS_TOKEN from this process's
+  // environment (never written to disk).
+  //
+  // Account mode (no --project-ref) is used so the project-management tools
+  // (list_projects, get_project, …) are available alongside the project-level
+  // tools — the agent passes the project ref from its preamble. Writes are
+  // blocked two ways: --read-only on the server AND the condition's
+  // disallowed_tools denylist (which holds even under --dangerously-skip-permissions).
   if (condition.use_mcp) {
     const mcpConfig = {
       mcpServers: {
-        supabase: { type: "http", url: MCP_URL },
+        supabase: {
+          command: "npx",
+          args: ["-y", "@supabase/mcp-server-supabase@latest", "--read-only"],
+        },
       },
     };
     const mcpConfigPath = join(artifactDir, ".mcp-config.json");
@@ -165,12 +184,11 @@ function runAgent(
     args.push("--mcp-config", mcpConfigPath);
   }
 
-  // For the axi condition, prepend the bench/bin shim dir so `supabase-axi`
-  // resolves to the locally-built CLI (tests current code, no network).
+  // The agent inherits the environment. `supabase` and the globally-installed
+  // `supabase-axi` resolve via the existing PATH; SUPABASE_ACCESS_TOKEN is
+  // intentionally left in the environment so the agent (cli/axi) and the MCP
+  // subprocess can reach the cloud project.
   const env = { ...process.env };
-  env.PATH = `${BIN_DIR}:${env.PATH ?? ""}`;
-  // Keep the agent on the local stack only — never touch cloud.
-  delete env.SUPABASE_ACCESS_TOKEN;
 
   const startTime = Date.now();
   const proc = spawnSync("claude", args, {
@@ -185,9 +203,6 @@ function runAgent(
   const agentOutput = proc.stdout ?? "";
   if (proc.stderr) {
     writeFileSync(join(artifactDir, "stderr.txt"), proc.stderr);
-  }
-  if (!existsSync(FIXTURE_DIR)) {
-    throw new Error(`Fixture dir missing: ${FIXTURE_DIR}`);
   }
   return { agentOutput, wallClockSeconds: (Date.now() - startTime) / 1000 };
 }

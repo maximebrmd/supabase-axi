@@ -1,0 +1,15 @@
+Here are the columns and data types for `public.posts`:
+
+| Column | Data Type | Nullable | Default |
+|---|---|---|---|
+| `id` | `bigint` | NO | — |
+| `author_id` | `bigint` | NO | — |
+| `title` | `text` | NO | — |
+| `slug` | `text` | NO | — |
+| `body` | `text` | YES | — |
+| `status` | `text` | NO | `'draft'` |
+| `view_count` | `integer` | NO | `0` |
+| `published_at` | `timestamp with time zone` | YES | — |
+| `created_at` | `timestamp with time zone` | NO | `now()` |
+
+The table has 9 columns: integer identifiers (`id`, `author_id`), text fields (`title`, `slug`, `body`, `status`), a counter (`view_count`), and two timestamps (`published_at`, `created_at`). The `status` column defaults to `'draft'` and `created_at` defaults to `now()`.

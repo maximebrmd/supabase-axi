@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-# Shim used by the benchmark's `axi` condition so that `supabase-axi` on PATH
-# resolves to the locally-built CLI (tests the current code, no network).
-# Build it first from the repo root: `pnpm run build`.
-set -euo pipefail
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-exec node "$DIR/../../dist/bin/supabase-axi.js" "$@"

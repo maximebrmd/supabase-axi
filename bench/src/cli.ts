@@ -14,7 +14,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { parse as parseYaml } from "yaml";
 import type { ConditionDef, ConditionId, TaskDef } from "./types.js";
-import { runOne, ensureStackUp, stopStack } from "./runner.js";
+import { runOne, ensureProjectReachable } from "./runner.js";
 import { writeReports } from "./reporter.js";
 
 const BENCH_ROOT = resolve(import.meta.dirname, "..");
@@ -86,7 +86,7 @@ async function cmdRun(argv: string[]): Promise<void> {
   const model = args.model ?? DEFAULT_MODEL;
 
   if (!conditionId || !taskId) {
-    console.error("Usage: bench run --condition <id> --task <id> [--repeat N] [--model M] [--no-stop]");
+    console.error("Usage: bench run --condition <id> --task <id> [--repeat N] [--model M]");
     process.exit(1);
   }
 
@@ -106,20 +106,16 @@ async function cmdRun(argv: string[]): Promise<void> {
   }
 
   clearResults([conditionId]);
-  ensureStackUp();
+  ensureProjectReachable();
 
-  try {
-    for (let r = 1; r <= repeat; r++) {
-      console.log(`\n=== Run ${r}/${repeat}: ${conditionId} × ${taskId} ===\n`);
-      const result = runOne({ condition: conditionId as ConditionId, task: taskId, run: r, model, agent: "claude" }, condition, task);
-      console.log(`  Success: ${result.grade.task_success}`);
-      console.log(`  Turns: ${result.usage.turn_count}, Commands: ${result.usage.command_count}`);
-      console.log(`  Input tokens: ${result.usage.input_tokens} (cached: ${result.usage.input_tokens_cached})`);
-      console.log(`  Cost: $${result.usage.total_cost_usd.toFixed(4)}`);
-      console.log(`  Time: ${result.usage.wall_clock_seconds.toFixed(1)}s`);
-    }
-  } finally {
-    if (args["no-stop"] !== "true") stopStack();
+  for (let r = 1; r <= repeat; r++) {
+    console.log(`\n=== Run ${r}/${repeat}: ${conditionId} × ${taskId} ===\n`);
+    const result = runOne({ condition: conditionId as ConditionId, task: taskId, run: r, model, agent: "claude" }, condition, task);
+    console.log(`  Success: ${result.grade.task_success}`);
+    console.log(`  Turns: ${result.usage.turn_count}, Commands: ${result.usage.command_count}`);
+    console.log(`  Input tokens: ${result.usage.input_tokens} (cached: ${result.usage.input_tokens_cached})`);
+    console.log(`  Cost: $${result.usage.total_cost_usd.toFixed(4)}`);
+    console.log(`  Time: ${result.usage.wall_clock_seconds.toFixed(1)}s`);
   }
 }
 
@@ -137,43 +133,39 @@ async function cmdMatrix(argv: string[]): Promise<void> {
   const taskIds = taskFilter ? taskFilter.split(",") : [...tasks.keys()];
 
   clearResults(conditionIds);
-  ensureStackUp();
+  ensureProjectReachable();
 
   const total = conditionIds.length * taskIds.length * repeat;
 
-  try {
-    for (const condId of conditionIds) {
-      const condition = conditions.get(condId);
-      if (!condition) {
-        console.error(`Skipping unknown condition: ${condId}`);
+  for (const condId of conditionIds) {
+    const condition = conditions.get(condId);
+    if (!condition) {
+      console.error(`Skipping unknown condition: ${condId}`);
+      continue;
+    }
+
+    let condDone = 0;
+    const condTotal = taskIds.length * repeat;
+
+    for (const taskId of taskIds) {
+      const task = tasks.get(taskId);
+      if (!task) {
+        console.error(`Skipping unknown task: ${taskId}`);
         continue;
       }
 
-      let condDone = 0;
-      const condTotal = taskIds.length * repeat;
-
-      for (const taskId of taskIds) {
-        const task = tasks.get(taskId);
-        if (!task) {
-          console.error(`Skipping unknown task: ${taskId}`);
-          continue;
-        }
-
-        for (let r = 1; r <= repeat; r++) {
-          condDone++;
-          console.log(`\n[${condId} ${condDone}/${condTotal}] ${taskId} (run ${r})`);
-          const result = runOne(
-            { condition: condId as ConditionId, task: taskId, run: r, model, agent: "claude" },
-            condition,
-            task,
-          );
-          const status = result.grade.task_success ? "PASS" : "FAIL";
-          console.log(`  ${status} | ${result.usage.turn_count} turns | $${result.usage.total_cost_usd.toFixed(4)} | ${result.usage.wall_clock_seconds.toFixed(1)}s`);
-        }
+      for (let r = 1; r <= repeat; r++) {
+        condDone++;
+        console.log(`\n[${condId} ${condDone}/${condTotal}] ${taskId} (run ${r})`);
+        const result = runOne(
+          { condition: condId as ConditionId, task: taskId, run: r, model, agent: "claude" },
+          condition,
+          task,
+        );
+        const status = result.grade.task_success ? "PASS" : "FAIL";
+        console.log(`  ${status} | ${result.usage.turn_count} turns | $${result.usage.total_cost_usd.toFixed(4)} | ${result.usage.wall_clock_seconds.toFixed(1)}s`);
       }
     }
-  } finally {
-    if (args["no-stop"] !== "true") stopStack();
   }
 
   console.log(`\nMatrix complete: ${total} runs.`);
@@ -194,8 +186,9 @@ async function main(): Promise<void> {
     default:
       console.log(`supabase-axi-bench — benchmark harness for cli vs axi vs Supabase MCP
 
-All three conditions run against the SAME local Supabase stack (fixtures/demo).
-Agent backend and LLM judge are both \`claude\` (no OpenAI key required).
+All three conditions run against the SAME throwaway Supabase CLOUD project
+(set BENCH_PROJECT_REF; export SUPABASE_ACCESS_TOKEN first). Agent backend and
+LLM judge are both \`claude\` (no OpenAI key required).
 
 Commands:
   run       Run a single benchmark
@@ -203,14 +196,12 @@ Commands:
               --task <task_id>
               --repeat <N>   (default: 1)
               --model <M>    (default: ${DEFAULT_MODEL})
-              --no-stop      Leave the local stack running afterward
 
   matrix    Run all condition × task combinations
               --repeat <N>            (default: 1)
               --model <M>             (default: ${DEFAULT_MODEL})
               --condition <id,id,...> (filter conditions)
               --task <id,id,...>      (filter tasks)
-              --no-stop               Leave the local stack running afterward
 
   report    Generate summary from results.jsonl
 `);

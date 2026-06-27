@@ -1,0 +1,1 @@
+{"pass":true,"reason":"The agent ran `supabase projects list` to fetch the project list, found the `supabase-axi-bench` project in the results, and correctly reported its name and region as `eu-central-1` (Frankfurt/Central EU), matching the known facts."}

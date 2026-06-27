@@ -1,0 +1,4 @@
+{
+  "task_success": true,
+  "details": "The agent ran 'supabase projects list' and correctly identified the supabase-axi-bench project with status ACTIVE_HEALTHY and Postgres major version 17, matching the known facts exactly."
+}

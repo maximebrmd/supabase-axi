@@ -1,0 +1,15 @@
+Here are the results for the `supabase-axi-bench` project:
+
+**API URL**
+```
+https://ebwcjhmrvwekjiybhytt.supabase.co
+```
+
+**API Key Types**
+
+| Name | Type | Status |
+|---|---|---|
+| `anon` | Legacy (JWT-based) | Enabled |
+| `default` | Publishable (`sb_publishable_…`) | Enabled |
+
+The project exposes two key types: the classic **anon** legacy JWT key (for backward compatibility) and a modern **publishable** key (format `sb_publishable_...`), which Supabase recommends for new integrations due to independent rotation and improved security. No secret/service-role key values were printed.

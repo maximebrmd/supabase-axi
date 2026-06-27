@@ -1,0 +1,11 @@
+The secrets configured for the `supabase-axi-bench` project are:
+
+1. `SUPABASE_ANON_KEY`
+2. `SUPABASE_DB_URL`
+3. `SUPABASE_JWKS`
+4. `SUPABASE_PUBLISHABLE_KEYS`
+5. `SUPABASE_SECRET_KEYS`
+6. `SUPABASE_SERVICE_ROLE_KEY`
+7. `SUPABASE_URL`
+
+All 7 are built-in Supabase platform secrets (no custom user-defined secrets are present).

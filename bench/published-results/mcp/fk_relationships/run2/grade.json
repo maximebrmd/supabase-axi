@@ -1,4 +1,0 @@
-{
-  "task_success": true,
-  "details": "The agent correctly queried the information schema using SQL, retrieved the actual data, and reported both foreign key relationships: posts.author_id and comments.author_id both referencing authors.id. The answer is complete and accurate."
-}

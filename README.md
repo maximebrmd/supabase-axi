@@ -136,31 +136,35 @@ supabase-axi follows the [AXI](https://github.com/kunchenguid/axi) conventions, 
 ## Benchmark
 
 [`bench/`](./bench) is a self-contained harness that pits three ways of driving
-Supabase against the **same local `supabase start` stack** (a synthetic blog
-schema — no real data): the raw `supabase` CLI, `supabase-axi`, and the official
-**Supabase MCP server** the local stack exposes at `<api_url>/mcp`. The agent
-and the LLM judge are both the `claude` CLI (`claude-sonnet-4-6`); each of 10
-read-only tasks runs 3× per condition (90 runs).
+Supabase's **cloud-management surface** against the **same throwaway free-tier
+cloud project** (a synthetic blog schema — no real data): the raw `supabase`
+CLI, `supabase-axi@1.1.0` **installed globally and invoked directly** (incl. its
+`db query` command), and the official **Supabase MCP server**
+(`@supabase/mcp-server-supabase`, read-only). Both CLI binaries are installed
+system-wide and called the same way, for a fair comparison (mirrors gh-axi's
+methodology). The agent and the LLM judge are both the `claude` CLI
+(`claude-sonnet-4-6`); each of 11 read-only tasks (projects, keys, branches,
+secrets, edge functions, status, plus SQL) runs 3× per condition (99 runs).
 
 Headline numbers from a real run ([full report](./bench/published-results/report.md), [methodology](./bench/published-results/STUDY.md)):
 
 | Condition | Success% | Avg Input Tokens | Avg Output Tokens | Avg Cost | Avg Turns |
 | --------- | -------- | ---------------- | ----------------- | -------- | --------- |
-| `cli` (raw `supabase`) | 100% | 51,317 | 344 | $0.0310 | 2 |
-| `mcp` (Supabase MCP) | 90% | 56,500 | 670 | $0.0542 | 4 |
-| `axi` (`supabase-axi`) | 97% | 127,826 | 693 | $0.0880 | 6 |
+| `cli` (raw `supabase`) | 100% | 56,772 | 380 | $0.0522 | 3 |
+| `axi` (`supabase-axi@1.1.0`) | 100% | 68,329 | 438 | $0.0527 | 3 |
+| `mcp` (Supabase MCP) | 82% | 50,371 | 544 | $0.0515 | 3 |
 
-An honest result worth surfacing: on these **raw database-introspection** tasks
-the bare `supabase` CLI is the most token-efficient and reliable — most
-questions collapse to a single `supabase db dump --local` + grep, leaving little
-for a wrapper to improve. `supabase-axi` costs more here because it has no direct
-"query the database" command, so the agent explores (`db dump`, `--full`, grep)
-across more turns; its AXI strengths (pre-computed summaries, structured status,
-`help:` hints) help most on *list-and-summarize* operations rather than schema
-introspection. The Supabase MCP is competitive on pure DB queries but has no
-Edge-Functions tool, which is its only failing task. See the
-[study](./bench/published-results/STUDY.md) for the full per-task breakdown and
-caveats.
+The honest, mixed result: on Supabase's cloud-management domain `supabase-axi`
+**matches the raw CLI on reliability (100%) and total cost** ($1.74 vs $1.72
+across 33 runs each). It **wins clearly on the SQL tasks** — its `db query`
+command gives a one-shot "run SQL, get rows" path that's ~25–37% cheaper than
+the raw CLI (which has no direct cloud-SQL command) — but **costs more on
+detail-heavy project lookups**, where its minimal-by-default output makes the
+agent take extra turns for fields the CLI's verbose JSON returns at once. The
+Supabase MCP is competitive on cost but caps at 82%: it has no secrets tool and
+gives incomplete API-key answers. No interface dominates — each owns a category.
+See the [study](./bench/published-results/STUDY.md) for the full per-task
+breakdown and caveats.
 
 ## Contributing
 

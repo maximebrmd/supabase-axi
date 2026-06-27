@@ -1,0 +1,6 @@
+There are **2 Edge Functions** deployed to the `supabase-axi-bench` project:
+
+1. **`post-stats`** — status: ACTIVE
+2. **`hello-world`** — status: ACTIVE
+
+Both are active and have JWT verification disabled.

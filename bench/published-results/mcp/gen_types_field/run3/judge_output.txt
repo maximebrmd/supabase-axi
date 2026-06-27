@@ -1,1 +1,0 @@
-{"pass": true, "reason": "The agent correctly used the mcp__supabase__generate_typescript_types tool to generate the TypeScript types, then accurately identified that view_count on the posts table's Row is typed as `number`, which matches the known fact."}

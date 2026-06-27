@@ -8,7 +8,7 @@
 #
 # The target project:
 #   name:   supabase-axi-bench
-#   ref:    <PROJECT_REF>          # filled in once the throwaway project exists
+#   ref:    <recreated per run; deleted afterward — see published-results/STUDY.md>
 #   region: eu-central-1 (Frankfurt)
 #   plan:   free
 # Its database holds the synthetic blog schema (authors, posts, comments, tags,
@@ -35,7 +35,7 @@ tasks:
       What is the project reference (project ID) of the `supabase-axi-bench`
       project, and which region is it hosted in?
     grading:
-      grading_hint: "The project ref is <PROJECT_REF> and the region is eu-central-1 (Frankfurt). The agent must look it up; reporting a ref that matches the real project (a 20-char lowercase id) and the eu-central-1 region passes."
+      grading_hint: "The agent must look up the project's ref (a 20-char lowercase id, as returned by the project listing) and report it along with the region eu-central-1 (Frankfurt). Reporting the ref the tools actually returned plus the eu-central-1 region passes; guessing without a lookup fails."
 
   project_status:
     category: multi_step
@@ -51,7 +51,7 @@ tasks:
       For the `supabase-axi-bench` project, report its API URL and the names of
       the API key types it exposes (do NOT print secret key values).
     grading:
-      grading_hint: "The API URL is https://<PROJECT_REF>.supabase.co (REST at /rest/v1). The project exposes an anon/publishable key and a service_role/secret key. Reporting the correct URL host and that there are anon + service_role keys passes. Printing the full secret value is not required and should not be necessary."
+      grading_hint: "The API URL is https://<the project's ref>.supabase.co (REST at /rest/v1) — it must match the ref the tools return. The project exposes an anon/publishable key and a service_role/secret key. Reporting the correct URL host plus that there are anon + service_role keys passes. Printing the full secret value is not required and should not be necessary."
 
   # ── Resource listings (branches / secrets / functions) ─────────
 

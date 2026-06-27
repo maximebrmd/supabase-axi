@@ -1,1 +1,0 @@
-{"pass": true, "reason": "The agent ran `supabase-axi db dump` to retrieve the actual schema, found the CREATE TABLE statement for `posts`, and correctly reported all 9 columns (id, author_id, title, slug, body, status, view_count, published_at, created_at) with accurate data types (bigint, text, integer, timestamp with time zone) matching the known facts."}

@@ -1,0 +1,4 @@
+The `supabase-axi-bench` project details:
+
+- **Project reference (ID):** `ebwcjhmrvwekjiybhytt`
+- **Region:** `eu-central-1` (AWS EU Central — Frankfurt)

@@ -1,1 +1,0 @@
-{"pass": true, "reason": "The agent ran `supabase-axi gen types --local --full` and correctly identified `view_count: number` in the `posts` table's `Row` type from the actual command output."}

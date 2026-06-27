@@ -1,0 +1,15 @@
+Here are the columns and data types for `public.posts`:
+
+| Column | Data Type | Nullable | Default |
+|---|---|---|---|
+| `id` | `bigint` | NO | — |
+| `author_id` | `bigint` | NO | — |
+| `title` | `text` | NO | — |
+| `slug` | `text` | NO | — |
+| `body` | `text` | YES | — |
+| `status` | `text` | NO | `'draft'` |
+| `view_count` | `integer` | NO | `0` |
+| `published_at` | `timestamp with time zone` | YES | — |
+| `created_at` | `timestamp with time zone` | NO | `now()` |
+
+9 columns total. The table looks like a standard blog posts schema — `id` and `author_id` as `bigint` foreign/primary keys, text fields for content, a `status` field defaulting to `'draft'`, and timestamps for publishing and creation.

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
-  "description": "Benchmark harness comparing the raw supabase CLI, supabase-axi, and the Supabase MCP server for agent tasks against a local Supabase stack",
+  "description": "Benchmark harness comparing the raw supabase CLI, supabase-axi, and the Supabase MCP server for agent tasks against a throwaway Supabase cloud project",
   "scripts": {
     "build": "tsc",
     "test": "vitest run",

@@ -1,5 +1,6 @@
-# Benchmark conditions — each defines how the agent accesses the LOCAL Supabase
-# stack (fixtures/demo). All three hit the same running stack.
+# Benchmark conditions — each defines how the agent accesses the SAME throwaway
+# Supabase CLOUD project (ref injected as <PROJECT_REF>). The working directory
+# is already linked to that project.
 #
 # allowed_tools is passed verbatim to `claude --allowedTools`. The cli and axi
 # conditions get a shell (Bash) plus read tools; the mcp condition gets ONLY the
@@ -14,19 +15,19 @@ conditions:
     agents_md: |
       # Tools
 
-      You are working inside a local Supabase project directory. A local
-      Supabase stack is already running. Use the official `supabase` CLI for all
-      Supabase operations. Run `supabase --help` (and `supabase <command>
-      --help`) to discover subcommands and flags.
+      You are working in a directory linked to a Supabase CLOUD project named
+      `supabase-axi-bench` (project ref `<PROJECT_REF>`). Use the official
+      `supabase` CLI for all Supabase operations. Run `supabase --help` (and
+      `supabase <command> --help`) to discover subcommands and flags.
 
       Notes:
-      - For database/stack operations against the running local stack, use the
-        `--local` flag where applicable (e.g. `supabase db dump --local`,
-        `supabase migration list --local`, `supabase gen types typescript
-        --local`).
-      - `supabase status` shows the local stack's URLs and keys.
-      - This is a read-only investigation. Do NOT modify the database, reset, or
-        deploy anything.
+      - Operations act on the linked cloud project. Pass
+        `--project-ref <PROJECT_REF>` where a command needs an explicit ref.
+      - `SUPABASE_ACCESS_TOKEN` is already set, so management commands
+        (`supabase projects list`, `supabase functions list`,
+        `supabase branches list`, `supabase secrets list`, etc.) work.
+      - This is a read-only investigation. Do NOT modify the database, deploy,
+        reset, or change project settings.
 
   axi:
     name: "supabase-axi (AXI wrapper)"
@@ -35,30 +36,40 @@ conditions:
     agents_md: |
       # Tools
 
-      You are working inside a local Supabase project directory. A local
-      Supabase stack is already running. Use `supabase-axi` for Supabase
-      operations — it wraps the official `supabase` CLI with token-efficient,
-      structured TOON output, pre-computed summaries, and contextual `help:`
-      hints. Run `supabase-axi --help` (and `supabase-axi <command>`) to
-      discover commands.
+      You are working in a directory linked to a Supabase CLOUD project named
+      `supabase-axi-bench` (project ref `<PROJECT_REF>`). You have `supabase-axi`
+      installed — use it for all Supabase operations. It wraps the official
+      `supabase` CLI with token-efficient, structured TOON output, pre-computed
+      summaries, and contextual `help:` hints. Run `supabase-axi --help` (and
+      `supabase-axi <command>`) to discover commands.
 
-      Notes:
-      - Flags after a subcommand are forwarded to the underlying `supabase` CLI
-        verbatim, so you can pass `--local` where applicable (e.g.
-        `supabase-axi db dump --local`, `supabase-axi gen types --local`).
-      - `supabase-axi status` shows the local stack's URLs and keys.
+      Useful commands:
+      - `supabase-axi projects list` / `supabase-axi projects get <ref>` — list
+        projects / a project's API keys + connection info.
+      - `supabase-axi db query "<SQL>"` — run read-only SQL against the linked
+        project and get the rows back (use this for database questions).
+      - `supabase-axi functions list`, `supabase-axi branches list`,
+        `supabase-axi secrets list`, `supabase-axi migration list`,
+        `supabase-axi gen types --linked`.
       - Output is TOON; lists are minimal by default — pass `--full` or
         `--fields <list>` to widen, and `--full` to expand previewed blobs.
-      - This is a read-only investigation. Do NOT modify the database, reset, or
-        deploy anything.
+
+      Notes:
+      - `SUPABASE_ACCESS_TOKEN` is already set. Pass `--project-ref <PROJECT_REF>`
+        where an explicit ref is needed.
+      - This is a read-only investigation. Do NOT modify the database, deploy,
+        reset, or change project settings.
 
   mcp:
     name: "Supabase MCP server"
     tool: mcp
     use_mcp: true
     # Hard-block every shell/file/agent tool so this condition is genuinely
-    # MCP-only (no falling back to `find`/`ls`/`supabase`). ToolSearch stays
-    # allowed so the agent can load the deferred MCP tool schemas.
+    # MCP-only (no falling back to the `supabase` CLI), AND every write/cost MCP
+    # tool the account-mode server exposes — so the agent can never mutate a
+    # project or incur cost. A denylist holds even under
+    # --dangerously-skip-permissions. ToolSearch stays allowed so the agent can
+    # load the deferred MCP tool schemas.
     disallowed_tools:
       - "Bash"
       - "Glob"
@@ -70,27 +81,48 @@ conditions:
       - "Agent"
       - "WebFetch"
       - "WebSearch"
+      - "mcp__supabase__create_project"
+      - "mcp__supabase__get_cost"
+      - "mcp__supabase__confirm_cost"
+      - "mcp__supabase__pause_project"
+      - "mcp__supabase__restore_project"
+      - "mcp__supabase__apply_migration"
+      - "mcp__supabase__deploy_edge_function"
+      - "mcp__supabase__create_branch"
+      - "mcp__supabase__delete_branch"
+      - "mcp__supabase__merge_branch"
+      - "mcp__supabase__reset_branch"
+      - "mcp__supabase__rebase_branch"
     allowed_tools:
+      - "mcp__supabase__list_organizations"
+      - "mcp__supabase__get_organization"
+      - "mcp__supabase__list_projects"
+      - "mcp__supabase__get_project"
+      - "mcp__supabase__get_project_url"
+      - "mcp__supabase__get_publishable_keys"
       - "mcp__supabase__list_tables"
       - "mcp__supabase__list_extensions"
       - "mcp__supabase__list_migrations"
+      - "mcp__supabase__list_branches"
+      - "mcp__supabase__list_edge_functions"
+      - "mcp__supabase__get_edge_function"
       - "mcp__supabase__execute_sql"
       - "mcp__supabase__generate_typescript_types"
-      - "mcp__supabase__get_project_url"
-      - "mcp__supabase__get_publishable_keys"
       - "mcp__supabase__get_advisors"
       - "mcp__supabase__get_logs"
       - "mcp__supabase__search_docs"
     agents_md: |
       # Tools
 
-      A Supabase MCP server is registered (the official server, served by the
-      local Supabase stack). Use its MCP tools for all Supabase operations.
-      Available tools include: `list_tables`, `list_extensions`,
-      `list_migrations`, `execute_sql` (run read-only SQL),
-      `generate_typescript_types`, `get_project_url`, `get_publishable_keys`,
-      `get_advisors`, `get_logs`, and `search_docs`.
+      The official Supabase MCP server is registered (read-only), targeting the
+      cloud project `supabase-axi-bench` (project ref `<PROJECT_REF>`). Use its
+      MCP tools for all Supabase operations. Available tools include:
+      `list_projects`, `get_project`, `list_organizations`, `list_tables`,
+      `list_migrations`, `list_branches`, `list_edge_functions`, `execute_sql`
+      (read-only SQL), `generate_typescript_types`, `get_project_url`,
+      `get_publishable_keys`, `get_advisors`, `get_logs`, and `search_docs`.
+      The project-level tools take a `project_id` argument — use the project ref
+      above (`<PROJECT_REF>`).
 
       IMPORTANT: You do NOT have shell access. Use the MCP tools exclusively.
-      This is a read-only investigation — only run SELECT/read queries; do not
-      modify the database.
+      This is a read-only investigation — only run SELECT/read queries.
