@@ -84,7 +84,8 @@ export SUPABASE_ACCESS_TOKEN=sbp_…
 ```bash
 supabase-axi                                  # home — your projects (+ local migrations if linked)
 supabase-axi projects list                    # all projects (ref, name, region)
-supabase-axi projects get <ref>               # API keys + connection info (REST URL)
+supabase-axi projects get <ref>               # public key + connection info (REST URL)
+supabase-axi projects get <ref> --reveal-secrets  # ...plus secret key values (service_role)
 supabase-axi link --project-ref <ref>         # link this directory to a project
 supabase-axi db push --dry-run                # apply local migrations remotely
 supabase-axi db diff --schema public          # pending schema changes as SQL
@@ -110,7 +111,7 @@ Run `supabase-axi --help` for the full command list, or `supabase-axi <command> 
 | ------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `(none)` / home                                   | Content-first overview: your projects, plus local migrations when run from a linked directory. |
 | `whoami`                                          | Confirm the active identity by listing reachable projects; `AUTH_REQUIRED` when not logged in. |
-| `projects <list\|get\|create>`                    | List projects, fetch one's keys + connection info, or create a new cloud project.              |
+| `projects <list\|get\|create>`                    | List projects, fetch keys + connection info (secret values withheld), or create a project.     |
 | `db <push\|pull\|diff\|reset\|dump\|query>`       | Apply/import/diff/rebuild/export the database, or run SQL and read the rows.                   |
 | `migration <list\|new\|up\|repair\|squash>`       | Manage migration scripts and history.                                                          |
 | `functions <list\|new\|deploy\|delete\|download>` | Manage Edge Functions.                                                                         |

@@ -10,8 +10,13 @@ subcommands:
       List all projects you can reach (ref, name, region). --full adds the
       organization and creation date; --fields picks specific columns.
 
-  get <ref>
+  get <ref> [--reveal-secrets]
       Show a project's details, API keys, and connection info (REST URL).
+      Keys are classified by their type: publishable (and the legacy anon
+      key) are public and print their value; secret-typed keys, service_role,
+      and anything not recognised as public print only their name, class and a
+      short suffix. Pass --reveal-secrets to print those values too — the
+      output then contains a full-privilege credential.
 
   create <name> --org <org_id> --db-password <pw> --region <region>
       Create a NEW cloud project. This provisions billable infrastructure on
@@ -20,6 +25,7 @@ subcommands:
 examples:
   supabase-axi projects list
   supabase-axi projects get abcdefghijklmnop
+  supabase-axi projects get abcdefghijklmnop --reveal-secrets
   supabase-axi projects create my-app --org abcd --db-password 's3cret' --region us-east-1
 `;
 
@@ -94,8 +100,46 @@ async function projectsList(args: string[]) {
   };
 }
 
+/**
+ * Fallback for payloads without a `type` field: key names Supabase designs to
+ * be shipped in client code.
+ */
+const PUBLIC_KEY_NAMES = new Set(["anon", "publishable"]);
+
+function lower(value: unknown): string {
+  return typeof value === "string" ? value.toLowerCase() : "";
+}
+
+/**
+ * A key is public only when positively recognised as such. `type` is
+ * authoritative — names are user-chosen in the dashboard, and both new-model
+ * keys arrive named `default` — so classify on it: `publishable` is public,
+ * `legacy` is public only for `anon`, and any other type (`secret`, or a type
+ * Supabase adds later) is secret. Only when the payload carries no type at all
+ * do we fall back to the name allow-list. Unknown ⇒ secret, so a new key type
+ * is withheld on the day it appears rather than leaked once.
+ */
+function isPublicKey(key: Obj): boolean {
+  const type = lower(key.type);
+  const name = lower(key.name);
+  if (type === "publishable") return true;
+  if (type === "legacy") return name === "anon";
+  if (type) return false;
+  return PUBLIC_KEY_NAMES.has(name);
+}
+
+/**
+ * Identity for a withheld secret: enough to tell two keys apart, or to match
+ * one against a value the caller already holds, without being usable.
+ */
+function withheld(value: unknown): string {
+  const v = typeof value === "string" ? value : "";
+  return v.length > 4 ? `hidden (…${v.slice(-4)})` : "hidden";
+}
+
 async function projectsGet(args: string[]) {
-  const { positionals } = parseArgs(args);
+  const { positionals, flags } = parseArgs(args, ["reveal-secrets"]);
+  const reveal = flags["reveal-secrets"] === true;
   const ref0 = positionals[0];
   if (!ref0) {
     throw usage("Missing project ref", "Run `supabase-axi projects get <ref>`");
@@ -106,6 +150,7 @@ async function projectsGet(args: string[]) {
   );
   const projects = asArray<Obj>(await supaJson<Obj[]>(["projects", "list"]));
   const project = projects.find((p) => ref(p) === ref0);
+  const secretCount = keys.filter((k) => !isPublicKey(k)).length;
 
   return {
     project: project
@@ -121,13 +166,28 @@ async function projectsGet(args: string[]) {
       url: `https://${ref0}.supabase.co`,
       rest: `https://${ref0}.supabase.co/rest/v1`,
     },
-    api_keys: keys.map((k) => ({ name: k.name, key: k.api_key })),
+    api_keys: keys.map((k) => {
+      const isPublic = isPublicKey(k);
+      return {
+        name: k.name,
+        class: isPublic ? "public" : "secret",
+        key: isPublic || reveal ? k.api_key : withheld(k.api_key),
+      };
+    }),
+    ...(secretCount && reveal
+      ? {
+          revealed: `${secretCount} secret key value(s) printed in full above — this output is a credential; do not paste it into logs, tickets, or transcripts`,
+        }
+      : {}),
     help: [
-      "Use the `anon` key in browser/client code; keep `service_role` server-side only",
+      "Use the `anon`/`publishable` key in browser/client code; keep `service_role`/`secret` keys server-side only",
+      secretCount && !reveal
+        ? "Secret key values are withheld — rerun with `--reveal-secrets` to print them"
+        : undefined,
       "Run `supabase-axi link --project-ref " +
         ref0 +
         "` to link this directory",
-    ],
+    ].filter(Boolean),
   };
 }
 
