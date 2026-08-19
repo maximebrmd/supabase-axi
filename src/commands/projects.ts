@@ -12,10 +12,11 @@ subcommands:
 
   get <ref> [--reveal-secrets]
       Show a project's details, API keys, and connection info (REST URL).
-      Public keys (anon/publishable) print their value; secret keys
-      (service_role, secret, and anything not recognised as public) print only
-      their name and a short suffix. Pass --reveal-secrets to print those
-      values too — the output then contains a full-privilege credential.
+      Keys are classified by their type: publishable (and the legacy anon
+      key) are public and print their value; secret-typed keys, service_role,
+      and anything not recognised as public print only their name, class and a
+      short suffix. Pass --reveal-secrets to print those values too — the
+      output then contains a full-privilege credential.
 
   create <name> --org <org_id> --db-password <pw> --region <region>
       Create a NEW cloud project. This provisions billable infrastructure on
@@ -100,15 +101,31 @@ async function projectsList(args: string[]) {
 }
 
 /**
- * Key names Supabase designs to be shipped in client code: the legacy `anon`
- * key and its newer `publishable` replacement. Everything else — `service_role`,
- * `secret`, and any key type Supabase adds later — is treated as secret, so an
- * unrecognised name is withheld by default rather than leaked once.
+ * Fallback for payloads without a `type` field: key names Supabase designs to
+ * be shipped in client code.
  */
 const PUBLIC_KEY_NAMES = new Set(["anon", "publishable"]);
 
-function isPublicKey(name: unknown): boolean {
-  return typeof name === "string" && PUBLIC_KEY_NAMES.has(name.toLowerCase());
+function lower(value: unknown): string {
+  return typeof value === "string" ? value.toLowerCase() : "";
+}
+
+/**
+ * A key is public only when positively recognised as such. `type` is
+ * authoritative — names are user-chosen in the dashboard, and both new-model
+ * keys arrive named `default` — so classify on it: `publishable` is public,
+ * `legacy` is public only for `anon`, and any other type (`secret`, or a type
+ * Supabase adds later) is secret. Only when the payload carries no type at all
+ * do we fall back to the name allow-list. Unknown ⇒ secret, so a new key type
+ * is withheld on the day it appears rather than leaked once.
+ */
+function isPublicKey(key: Obj): boolean {
+  const type = lower(key.type);
+  const name = lower(key.name);
+  if (type === "publishable") return true;
+  if (type === "legacy") return name === "anon";
+  if (type) return false;
+  return PUBLIC_KEY_NAMES.has(name);
 }
 
 /**
@@ -133,7 +150,7 @@ async function projectsGet(args: string[]) {
   );
   const projects = asArray<Obj>(await supaJson<Obj[]>(["projects", "list"]));
   const project = projects.find((p) => ref(p) === ref0);
-  const secretCount = keys.filter((k) => !isPublicKey(k.name)).length;
+  const secretCount = keys.filter((k) => !isPublicKey(k)).length;
 
   return {
     project: project
@@ -150,7 +167,7 @@ async function projectsGet(args: string[]) {
       rest: `https://${ref0}.supabase.co/rest/v1`,
     },
     api_keys: keys.map((k) => {
-      const isPublic = isPublicKey(k.name);
+      const isPublic = isPublicKey(k);
       return {
         name: k.name,
         class: isPublic ? "public" : "secret",

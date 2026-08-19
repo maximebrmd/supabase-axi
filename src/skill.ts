@@ -41,7 +41,7 @@ Use supabase-axi whenever a task touches Supabase: listing projects or fetching 
 ## Workflow
 
 1. Run \`npx -y supabase-axi\` with no arguments for a content-first overview of your projects (and local migrations when run from a linked directory).
-2. \`projects list\` shows your projects; \`projects get <ref>\` adds API keys and connection info (the REST URL). Public keys (\`anon\`/\`publishable\`) print in full; secret key values (\`service_role\`, \`secret\`, anything unrecognised) are withheld — pass \`--reveal-secrets\` only when you actually need to paste one somewhere.
+2. \`projects list\` shows your projects; \`projects get <ref>\` adds API keys and connection info (the REST URL). Public keys (type \`publishable\`, or the legacy \`anon\` key) print in full; secret key values (\`service_role\`, type \`secret\`, anything unrecognised) are withheld — pass \`--reveal-secrets\` only when you actually need to paste one somewhere.
 3. \`link --project-ref <ref>\` links the current directory so \`db\`, \`migration\`, \`functions\`, and \`gen\` target that project.
 4. \`db push\` applies local migrations remotely; \`db pull\` imports the remote schema; \`db diff\` prints pending SQL; \`db dump\` exports the schema; \`db reset\` rebuilds the LOCAL database; \`db query "<sql>"\` runs SQL against the linked project and returns the rows.
 5. \`migration list\` shows versions; \`migration new <name>\` scaffolds one; \`migration up\` applies pending ones locally; \`migration repair <version> --status applied\` fixes history.

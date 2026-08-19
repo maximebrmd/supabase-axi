@@ -186,6 +186,50 @@ describe("projects get", () => {
     ]);
   });
 
+  it("classifies new-model keys by type, not by their shared `default` name", async () => {
+    json.mockImplementation(async (args: string[]) => {
+      if (args[1] === "api-keys")
+        return [
+          { name: "anon", type: "legacy", api_key: "anon-key" },
+          { name: "service_role", type: "legacy", api_key: "SVC-SECRET-VALUE" },
+          { name: "default", type: "publishable", api_key: "sb_publishable_1" },
+          { name: "default", type: "secret", api_key: "sb_secret_9999" },
+        ];
+      return projects;
+    });
+    const c = capture();
+    await main({ argv: ["projects", "get", "p1"], stdout: c.stdout });
+    const rendered = c.read();
+    expect(rendered).toContain("anon,public,anon-key");
+    expect(rendered).toContain("default,public,sb_publishable_1");
+    expect(rendered).toContain("default,secret,hidden (\u20269999)");
+    expect(rendered).toContain("service_role,secret,hidden (\u2026ALUE)");
+    expect(rendered).not.toContain("SVC-SECRET-VALUE");
+    expect(rendered).not.toContain("sb_secret_9999,");
+  });
+
+  it("never renders a secret-typed key renamed `anon` or `publishable`", async () => {
+    json.mockImplementation(async (args: string[]) => {
+      if (args[1] === "api-keys")
+        return [
+          { name: "anon", type: "secret", api_key: "RENAMED-SECRET-VALUE" },
+          {
+            name: "publishable",
+            type: "quantum_v3",
+            api_key: "FUTURE-SECRET-VALUE",
+          },
+        ];
+      return projects;
+    });
+    const c = capture();
+    await main({ argv: ["projects", "get", "p1"], stdout: c.stdout });
+    const rendered = c.read();
+    expect(rendered).toContain("anon,secret,hidden (\u2026ALUE)");
+    expect(rendered).toContain("publishable,secret,hidden (\u2026ALUE)");
+    expect(rendered).not.toContain("RENAMED-SECRET-VALUE");
+    expect(rendered).not.toContain("FUTURE-SECRET-VALUE");
+  });
+
   it("falls back to just the ref when the project is not in the list", async () => {
     json.mockImplementation(async (args: string[]) =>
       args[1] === "api-keys" ? [] : [],
