@@ -10,8 +10,12 @@ subcommands:
       List all projects you can reach (ref, name, region). --full adds the
       organization and creation date; --fields picks specific columns.
 
-  get <ref>
+  get <ref> [--reveal-secrets]
       Show a project's details, API keys, and connection info (REST URL).
+      Public keys (anon/publishable) print their value; secret keys
+      (service_role, secret, and anything not recognised as public) print only
+      their name and a short suffix. Pass --reveal-secrets to print those
+      values too — the output then contains a full-privilege credential.
 
   create <name> --org <org_id> --db-password <pw> --region <region>
       Create a NEW cloud project. This provisions billable infrastructure on
@@ -20,6 +24,7 @@ subcommands:
 examples:
   supabase-axi projects list
   supabase-axi projects get abcdefghijklmnop
+  supabase-axi projects get abcdefghijklmnop --reveal-secrets
   supabase-axi projects create my-app --org abcd --db-password 's3cret' --region us-east-1
 `;
 
@@ -94,8 +99,30 @@ async function projectsList(args: string[]) {
   };
 }
 
+/**
+ * Key names Supabase designs to be shipped in client code: the legacy `anon`
+ * key and its newer `publishable` replacement. Everything else — `service_role`,
+ * `secret`, and any key type Supabase adds later — is treated as secret, so an
+ * unrecognised name is withheld by default rather than leaked once.
+ */
+const PUBLIC_KEY_NAMES = new Set(["anon", "publishable"]);
+
+function isPublicKey(name: unknown): boolean {
+  return typeof name === "string" && PUBLIC_KEY_NAMES.has(name.toLowerCase());
+}
+
+/**
+ * Identity for a withheld secret: enough to tell two keys apart, or to match
+ * one against a value the caller already holds, without being usable.
+ */
+function withheld(value: unknown): string {
+  const v = typeof value === "string" ? value : "";
+  return v.length > 4 ? `hidden (…${v.slice(-4)})` : "hidden";
+}
+
 async function projectsGet(args: string[]) {
-  const { positionals } = parseArgs(args);
+  const { positionals, flags } = parseArgs(args, ["reveal-secrets"]);
+  const reveal = flags["reveal-secrets"] === true;
   const ref0 = positionals[0];
   if (!ref0) {
     throw usage("Missing project ref", "Run `supabase-axi projects get <ref>`");
@@ -106,6 +133,7 @@ async function projectsGet(args: string[]) {
   );
   const projects = asArray<Obj>(await supaJson<Obj[]>(["projects", "list"]));
   const project = projects.find((p) => ref(p) === ref0);
+  const secretCount = keys.filter((k) => !isPublicKey(k.name)).length;
 
   return {
     project: project
@@ -121,13 +149,28 @@ async function projectsGet(args: string[]) {
       url: `https://${ref0}.supabase.co`,
       rest: `https://${ref0}.supabase.co/rest/v1`,
     },
-    api_keys: keys.map((k) => ({ name: k.name, key: k.api_key })),
+    api_keys: keys.map((k) => {
+      const isPublic = isPublicKey(k.name);
+      return {
+        name: k.name,
+        class: isPublic ? "public" : "secret",
+        key: isPublic || reveal ? k.api_key : withheld(k.api_key),
+      };
+    }),
+    ...(secretCount && reveal
+      ? {
+          revealed: `${secretCount} secret key value(s) printed in full above — this output is a credential; do not paste it into logs, tickets, or transcripts`,
+        }
+      : {}),
     help: [
-      "Use the `anon` key in browser/client code; keep `service_role` server-side only",
+      "Use the `anon`/`publishable` key in browser/client code; keep `service_role`/`secret` keys server-side only",
+      secretCount && !reveal
+        ? "Secret key values are withheld — rerun with `--reveal-secrets` to print them"
+        : undefined,
       "Run `supabase-axi link --project-ref " +
         ref0 +
         "` to link this directory",
-    ],
+    ].filter(Boolean),
   };
 }
 

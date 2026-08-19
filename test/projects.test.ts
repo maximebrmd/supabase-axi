@@ -1,10 +1,24 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("../src/supa.js", () => ({ supaJson: vi.fn(), supaText: vi.fn() }));
+vi.mock("../src/supa.js", () => ({
+  supaJson: vi.fn(),
+  supaText: vi.fn(),
+  mgmtApi: vi.fn(),
+}));
 
 import { projectsCommand } from "../src/commands/projects.js";
+import { main } from "../src/cli.js";
 import { supaJson, supaText } from "../src/supa.js";
 import { AxiError } from "../src/errors.js";
+
+/** Collect what the CLI actually renders, so leaks are caught in the output. */
+function capture() {
+  let out = "";
+  return {
+    stdout: { write: (c: string) => ((out += c), true) },
+    read: () => out,
+  };
+}
 
 const json = vi.mocked(supaJson);
 const text = vi.mocked(supaText);
@@ -93,7 +107,7 @@ describe("projects get", () => {
       if (args[1] === "api-keys")
         return [
           { name: "anon", api_key: "anon-key" },
-          { name: "service_role", api_key: "svc-key" },
+          { name: "service_role", api_key: "svc-key-tail" },
         ];
       return projects;
     });
@@ -101,8 +115,74 @@ describe("projects get", () => {
     expect(out.project).toMatchObject({ ref: "p1", name: "App", org: "org1" });
     expect(out.connection.url).toBe("https://p1.supabase.co");
     expect(out.api_keys).toEqual([
-      { name: "anon", key: "anon-key" },
-      { name: "service_role", key: "svc-key" },
+      { name: "anon", class: "public", key: "anon-key" },
+      { name: "service_role", class: "secret", key: "hidden (\u2026tail)" },
+    ]);
+    expect(out.revealed).toBeUndefined();
+    expect(out.help.some((h: string) => h.includes("--reveal-secrets"))).toBe(
+      true,
+    );
+  });
+
+  it("never renders a secret key value by default", async () => {
+    json.mockImplementation(async (args: string[]) => {
+      if (args[1] === "api-keys")
+        return [
+          { name: "anon", api_key: "anon-key" },
+          { name: "service_role", api_key: "SVC-SECRET-VALUE" },
+          { name: "secret", api_key: "sb_secret_9999" },
+        ];
+      return projects;
+    });
+    const c = capture();
+    await main({ argv: ["projects", "get", "p1"], stdout: c.stdout });
+    const rendered = c.read();
+    // Public key and both secret identities are still there...
+    expect(rendered).toContain("anon-key");
+    expect(rendered).toContain("service_role,secret,hidden (\u2026ALUE)");
+    expect(rendered).toContain("secret,secret,hidden (\u20269999)");
+    // ...but neither usable secret value is anywhere in what we printed.
+    expect(rendered).not.toContain("SVC-SECRET-VALUE");
+    expect(rendered).not.toContain("sb_secret_9999");
+  });
+
+  it("reveals secret values only with --reveal-secrets", async () => {
+    json.mockImplementation(async (args: string[]) => {
+      if (args[1] === "api-keys")
+        return [
+          { name: "publishable", api_key: "pub-key" },
+          { name: "service_role", api_key: "SVC-SECRET-VALUE" },
+        ];
+      return projects;
+    });
+    const out: any = await projectsCommand(["get", "p1", "--reveal-secrets"]);
+    expect(out.api_keys).toEqual([
+      { name: "publishable", class: "public", key: "pub-key" },
+      { name: "service_role", class: "secret", key: "SVC-SECRET-VALUE" },
+    ]);
+    expect(out.revealed).toContain("1 secret key value(s) printed in full");
+    expect(out.help.some((h: string) => h.includes("--reveal-secrets"))).toBe(
+      false,
+    );
+  });
+
+  it("treats an unrecognised key name as secret", async () => {
+    json.mockImplementation(async (args: string[]) => {
+      if (args[1] === "api-keys")
+        return [
+          { name: "quantum_key_v3", api_key: "FUTURE-SECRET" },
+          { name: undefined, api_key: undefined },
+        ];
+      return projects;
+    });
+    const out: any = await projectsCommand(["get", "p1"]);
+    expect(out.api_keys).toEqual([
+      {
+        name: "quantum_key_v3",
+        class: "secret",
+        key: "hidden (\u2026CRET)",
+      },
+      { name: undefined, class: "secret", key: "hidden" },
     ]);
   });
 
@@ -113,6 +193,10 @@ describe("projects get", () => {
     const out: any = await projectsCommand(["get", "unknown"]);
     expect(out.project).toEqual({ ref: "unknown" });
     expect(out.api_keys).toEqual([]);
+    expect(out.revealed).toBeUndefined();
+    expect(out.help.some((h: string) => h.includes("--reveal-secrets"))).toBe(
+      false,
+    );
   });
 });
 
