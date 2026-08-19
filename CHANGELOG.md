@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/maximebrmd/supabase-axi/compare/supabase-axi-v1.1.0...supabase-axi-v1.1.1) (2026-08-19)
+
+
+### Bug Fixes
+
+* **projects:** withhold secret API key values in projects get ([#9](https://github.com/maximebrmd/supabase-axi/issues/9)) ([4a86990](https://github.com/maximebrmd/supabase-axi/commit/4a869907cbca41851d5ee3a768c4fc9676302727))
+
 ## [1.1.0](https://github.com/maximebrmd/supabase-axi/compare/supabase-axi-v1.0.0...supabase-axi-v1.1.0) (2026-06-27)
 
 
