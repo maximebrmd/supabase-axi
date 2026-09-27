@@ -111,7 +111,7 @@ export async function dbCommand(args: string[]) {
  */
 const READ_ONLY_REFUSAL_PATTERNS = [
   /read[-\s]?only transaction/i, // Postgres 25006: cannot execute ... in a read-only transaction
-  /permission denied/i, // read-only role lacks write privileges (42501)
+  /permission denied for (?:schema|database|table|relation|sequence)\b/i,
   /(?:only|just)\s+(?:select|read)/i, // endpoint: only SELECT/read queries are allowed
   /(?:writes?|mutations?|modifications?)\s+(?:are\s+)?(?:not allowed|forbidden|blocked|denied|refused)/i,
 ];

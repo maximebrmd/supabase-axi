@@ -227,6 +227,24 @@ describe("dbCommand query", () => {
     expect(err.suggestions).toEqual([]);
   });
 
+  it("keeps function permission failures unchanged", async () => {
+    linked.mockReturnValue("abcd");
+    api.mockRejectedValue(
+      new AxiError(
+        "permission denied for function private_lookup",
+        "VALIDATION_ERROR",
+        [],
+      ),
+    );
+    const err: AxiError = await dbCommand([
+      "query",
+      "select public.private_lookup()",
+    ]).catch((e) => e);
+    expect(err.code).toBe("VALIDATION_ERROR");
+    expect(err.message).toBe("permission denied for function private_lookup");
+    expect(err.suggestions).toEqual([]);
+  });
+
   it("rethrows non-AxiError read-only failures", async () => {
     linked.mockReturnValue("abcd");
     api.mockRejectedValue(new Error("socket hang up"));
