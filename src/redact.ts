@@ -68,6 +68,13 @@ const CREDENTIAL_SUBSTRINGS = ["key", "secret", "token", "password"];
 
 /** Compact spellings that tokenisation would split (`connectionString`). */
 const CREDENTIAL_COMPACT = ["connectionstring", "connstr"];
+const SIGNING_KEY_METADATA = new Set([
+  "id",
+  "algorithm",
+  "status",
+  "created_at",
+  "updated_at",
+]);
 
 /** Split a field name into lowercase words: `db_password`, `db-password`, `dbPassword`. */
 function fieldWords(name: string): string[] {
@@ -98,13 +105,21 @@ export function isCredentialField(name: string): boolean {
 }
 
 /** Case-insensitive path test that ignores query strings and stray slashes. */
-function endsWithSegment(path: string, segment: string): boolean {
+function endsWithSegment(
+  path: string,
+  segment: string,
+  allowChild = false,
+): boolean {
   const clean = path
     .toLowerCase()
     .split(/[?#]/)[0]
     .replace(/^\/+/, "")
     .replace(/\/+$/, "");
-  return clean === segment || clean.endsWith(`/${segment}`);
+  return (
+    clean === segment ||
+    clean.endsWith(`/${segment}`) ||
+    (allowChild && clean.split("/").at(-2) === segment)
+  );
 }
 
 interface RedactionContext {
@@ -112,6 +127,7 @@ interface RedactionContext {
   apiKeys: boolean;
   /** `/…/secrets` shape: every `value` string is a secret. */
   secrets: boolean;
+  signingKeys: boolean;
 }
 
 interface RedactionState {
@@ -123,6 +139,7 @@ function redactValue(
   context: RedactionContext,
   state: RedactionState,
   insideCredential = false,
+  signingKeyEntry = false,
 ): unknown {
   if (typeof value === "string") {
     // Only reachable from a credential-named container: a bare string there
@@ -133,13 +150,21 @@ function redactValue(
   }
   if (Array.isArray(value)) {
     return value.map((item) =>
-      redactValue(item, context, state, insideCredential),
+      redactValue(item, context, state, insideCredential, signingKeyEntry),
     );
   }
   if (value === null || typeof value !== "object") return value;
 
   const out: Obj = {};
   for (const [field, raw] of Object.entries(value)) {
+    if (signingKeyEntry && SIGNING_KEY_METADATA.has(field)) {
+      out[field] = raw;
+      continue;
+    }
+    if (context.signingKeys && !insideCredential && field === "keys") {
+      out[field] = redactValue(raw, context, state, true, true);
+      continue;
+    }
     if (context.apiKeys && field === "api_key") {
       // Known /api-keys shape: mask a key unless it is positively public, so
       // the generic field rule can never over-mask a publishable value.
@@ -190,8 +215,9 @@ export interface Redaction {
 export function redactApiPayload(path: string, payload: unknown): Redaction {
   const state: RedactionState = { count: 0 };
   const context: RedactionContext = {
-    apiKeys: endsWithSegment(path, "api-keys"),
+    apiKeys: endsWithSegment(path, "api-keys", true),
     secrets: endsWithSegment(path, "secrets"),
+    signingKeys: endsWithSegment(path, "signing-keys"),
   };
   return {
     payload: redactValue(payload, context, state),

@@ -209,6 +209,63 @@ describe("apiCommand", () => {
     expect(out.withheld).toBe(1);
   });
 
+  it("classifies a single API key by type", async () => {
+    api.mockResolvedValue({
+      name: "default",
+      type: "publishable",
+      api_key: "fixture-public-single-key",
+    });
+    const publicOut: any = await apiCommand(["v1/projects/p1/api-keys/key-id"]);
+    expect(publicOut.result.api_key).toBe("fixture-public-single-key");
+    expect(publicOut.withheld).toBeUndefined();
+
+    api.mockResolvedValue({
+      name: "default",
+      type: "secret",
+      api_key: "FIXTURE-SINGLE-SECRET",
+    });
+    const c = capture();
+    await main({
+      argv: ["api", "/V1/PROJECTS/p1/API-KEYS/key-id?x=1"],
+      stdout: c.stdout,
+    });
+    expect(c.read()).not.toContain("FIXTURE-SINGLE-SECRET");
+    expect(c.read()).toContain("withheld: 1");
+  });
+
+  it("keeps signing-key metadata while withholding JWK material", async () => {
+    api.mockResolvedValue({
+      keys: [
+        {
+          id: "signing-key-id",
+          algorithm: "RS256",
+          status: "active",
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-02T00:00:00Z",
+          private_jwk: { d: "FIXTURE-PRIVATE-JWK", k: "FIXTURE-SECRET-K" },
+        },
+      ],
+    });
+    const c = capture();
+    await main({
+      argv: ["api", "v1/projects/p1/config/auth/signing-keys"],
+      stdout: c.stdout,
+    });
+    const rendered = c.read();
+    for (const metadata of [
+      "signing-key-id",
+      "RS256",
+      "active",
+      "2026-01-01T00:00:00Z",
+      "2026-01-02T00:00:00Z",
+    ]) {
+      expect(rendered).toContain(metadata);
+    }
+    expect(rendered).not.toContain("FIXTURE-PRIVATE-JWK");
+    expect(rendered).not.toContain("FIXTURE-SECRET-K");
+    expect(rendered).toContain("withheld: 2");
+  });
+
   it("fails closed when an unknown endpoint carries an api_key field", async () => {
     api.mockResolvedValue({ api_key: "FIXTURE-UNKNOWN" });
     const out: any = await apiCommand(["v1/organizations/o1"]);
