@@ -30,8 +30,8 @@ describe("isPublicKey", () => {
 });
 
 describe("withheld", () => {
-  it("keeps a short identity suffix", () => {
-    expect(withheld("FIXTURE-SECRET-VALUE")).toBe("hidden (…ALUE)");
+  it("fully masks values by default", () => {
+    expect(withheld("FIXTURE-SECRET-VALUE")).toBe("hidden");
   });
 
   it("shows no suffix for short or non-string values", () => {
@@ -146,7 +146,7 @@ describe("redactApiPayload", () => {
       { name: "SHORT", value: "abc" },
     ]);
     expect(payload).toEqual([
-      { name: "STRIPE_KEY", value: "hidden (…RIPE)" },
+      { name: "STRIPE_KEY", value: "hidden" },
       { name: "SHORT", value: "hidden" },
     ]);
     expect(secrets).toBe(2);
@@ -157,7 +157,7 @@ describe("redactApiPayload", () => {
       { name: "META", value: { note: "FIXTURE-NESTED" } },
     ]);
     expect(payload).toEqual([
-      { name: "META", value: { note: "hidden (…STED)" } },
+      { name: "META", value: { note: "hidden" } },
     ]);
     expect(secrets).toBe(1);
   });
@@ -180,12 +180,12 @@ describe("redactApiPayload", () => {
     );
     expect(payload).toEqual({
       ref: "p1",
-      connection_string: "hidden (…b.p1)",
+      connection_string: "hidden",
       settings: {
-        serviceToken: "hidden (…OKEN)",
+        serviceToken: "hidden",
         items: [
-          { db_password: "hidden (…STED)", note: "keep me" },
-          { public_key: "hidden (…blic)" },
+          { db_password: "hidden", note: "keep me" },
+          { public_key: "hidden" },
         ],
       },
       benign: "visible",
@@ -197,7 +197,7 @@ describe("redactApiPayload", () => {
     const { payload, secrets } = redactApiPayload("v1/organizations/o1", {
       api_key: "FIXTURE-ANY",
     });
-    expect(payload).toEqual({ api_key: "hidden (…-ANY)" });
+    expect(payload).toEqual({ api_key: "hidden" });
     expect(secrets).toBe(1);
   });
 
@@ -207,8 +207,8 @@ describe("redactApiPayload", () => {
       nested: { keys: { pair: "FIXTURE-NESTED" } },
     });
     expect(payload).toEqual({
-      tokens: ["hidden (…-ONE)", "hidden (…-TWO)"],
-      nested: { keys: { pair: "hidden (…STED)" } },
+      tokens: ["hidden", "hidden"],
+      nested: { keys: { pair: "hidden" } },
     });
     expect(secrets).toBe(3);
   });

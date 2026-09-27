@@ -37,8 +37,13 @@ export function isPublicKey(key: Obj): boolean {
  * one against a value the caller already holds, without being usable.
  */
 export function withheld(value: unknown): string {
+  return withheldWithSuffix(value, false);
+}
+
+function withheldWithSuffix(value: unknown, withSuffix: boolean): string {
   const v = typeof value === "string" ? value : "";
-  return v.length > 4 ? `hidden (…${v.slice(-4)})` : "hidden";
+  if (withSuffix && v.length > 4) return `hidden (…${v.slice(-4)})`;
+  return "hidden";
 }
 
 /**
@@ -169,7 +174,7 @@ function redactValue(
       // Known /api-keys shape: mask a key unless it is positively public, so
       // the generic field rule can never over-mask a publishable value.
       if (typeof raw === "string" && !isPublicKey(value as Obj)) {
-        out[field] = withheld(raw);
+        out[field] = withheldWithSuffix(raw, true);
         state.count++;
       } else {
         out[field] = redactValue(raw, context, state, insideCredential);
