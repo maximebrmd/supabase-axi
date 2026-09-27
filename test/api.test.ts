@@ -216,6 +216,30 @@ describe("apiCommand", () => {
     expect(out.withheld).toBe(1);
   });
 
+  it("withholds compound credential fields in rendered API output", async () => {
+    api.mockResolvedValue({
+      accesskey: "FIXTURE-ACCESS-KEY",
+      clientsecret: "FIXTURE-CLIENT-SECRET",
+      refreshtoken: "FIXTURE-REFRESH-TOKEN",
+      masterpassword: "FIXTURE-MASTER-PASSWORD",
+      metadata: { keyword: "public-search-term", label: "public-label" },
+    });
+    const c = capture();
+    await main({ argv: ["api", "v1/organizations/o1"], stdout: c.stdout });
+    const rendered = c.read();
+    for (const credential of [
+      "FIXTURE-ACCESS-KEY",
+      "FIXTURE-CLIENT-SECRET",
+      "FIXTURE-REFRESH-TOKEN",
+      "FIXTURE-MASTER-PASSWORD",
+    ]) {
+      expect(rendered).not.toContain(credential);
+    }
+    expect(rendered).toContain("public-search-term");
+    expect(rendered).toContain("public-label");
+    expect(rendered).toContain("withheld: 4");
+  });
+
   it("masks bare strings inside credential-named containers", async () => {
     api.mockResolvedValue({
       tokens: ["FIXTURE-TOKEN-A", "FIXTURE-TOKEN-B"],

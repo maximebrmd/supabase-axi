@@ -55,6 +55,10 @@ describe("isCredentialField", () => {
     expect(isCredentialField("jwt")).toBe(true);
     expect(isCredentialField("dsn")).toBe(true);
     expect(isCredentialField("db_pwd")).toBe(true);
+    expect(isCredentialField("accesskey")).toBe(true);
+    expect(isCredentialField("clientsecret")).toBe(true);
+    expect(isCredentialField("refreshtoken")).toBe(true);
+    expect(isCredentialField("masterpassword")).toBe(true);
   });
 
   it("matches connection-string spellings compactly", () => {

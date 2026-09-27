@@ -64,6 +64,8 @@ const CREDENTIAL_WORDS = new Set([
   "dsn",
 ]);
 
+const CREDENTIAL_SUBSTRINGS = ["key", "secret", "token", "password"];
+
 /** Compact spellings that tokenisation would split (`connectionString`). */
 const CREDENTIAL_COMPACT = ["connectionstring", "connstr"];
 
@@ -82,7 +84,15 @@ function fieldWords(name: string): string[] {
  */
 export function isCredentialField(name: string): boolean {
   const words = fieldWords(name);
-  if (words.some((word) => CREDENTIAL_WORDS.has(word))) return true;
+  if (
+    words.some(
+      (word) =>
+        CREDENTIAL_WORDS.has(word) ||
+        (word !== "keyword" &&
+          CREDENTIAL_SUBSTRINGS.some((needle) => word.includes(needle))),
+    )
+  )
+    return true;
   const compact = words.join("");
   return CREDENTIAL_COMPACT.some((needle) => compact.includes(needle));
 }
