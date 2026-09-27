@@ -132,7 +132,7 @@ supabase-axi follows the [AXI](https://github.com/kunchenguid/axi) conventions, 
 - **Minimal by default** — lists show a few key columns; widen with `--full` or `--fields <a,b>`. Large blobs (`db dump`, `db diff`, `gen types`) are previewed with line/char counts; add `--full` to return the complete output (or pass `-f <file>` to `db dump`/`db diff` to write it straight to a file).
 - **Definitive empty states** — an empty list returns an explicit "no … yet" result, not a bare `[]`.
 - **Contextual suggestions** — every response ends with a `help:` array of next-step commands.
-- **Structured errors** — failures carry a `code` (`SUPABASE_NOT_INSTALLED`, `AUTH_REQUIRED`, `NOT_LINKED`, `DOCKER_REQUIRED`, `OBJECT_NOT_FOUND`, `VALIDATION_ERROR`) and actionable suggestions. Exit codes: `0` success, `1` error, `2` usage.
+- **Structured errors** — failures carry a `code` (`SUPABASE_NOT_INSTALLED`, `AUTH_REQUIRED`, `NOT_LINKED`, `DOCKER_REQUIRED`, `OBJECT_NOT_FOUND`, `READ_ONLY`, `VALIDATION_ERROR`) and actionable suggestions. Exit codes: `0` success, `1` error, `2` usage.
 - **Single boundary** — `src/supa.ts` is the only module that shells out to `supabase` (or hits the Management API), which keeps the command layer pure and the test suite hermetic at 100% coverage.
 
 ## Contributing

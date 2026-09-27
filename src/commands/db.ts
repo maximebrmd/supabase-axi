@@ -25,16 +25,16 @@ verbatim, e.g. \`db push --dry-run\`, \`db diff --schema public\`, \`db dump
 --data-only\`. Blob output (diff/dump) is previewed; add --full to return the
 complete output, or pass -f <file> to write it straight to a file.
 
-\`db query\` runs arbitrary SQL through the Management API (like the Supabase
-MCP's execute_sql); it needs a linked project (or --project-ref) and reads the
-access token from \`supabase login\` / SUPABASE_ACCESS_TOKEN. By default it uses
-the Management API's read-only endpoint, which runs the query as Postgres's
-read-only \`supabase_read_only_user\` role: a write fails with a structured
+\`db query\` runs SQL through the Management API; it needs a linked project
+(or --project-ref) and reads the access token from \`supabase login\` /
+SUPABASE_ACCESS_TOKEN. By default it uses the Management API's read-only
+endpoint, which runs the query as Postgres's read-only
+\`supabase_read_only_user\` role: a write fails with a structured
 READ_ONLY error whose help points at --write. The read-only endpoint requires
 schema-qualified relation references (e.g. \`public.todos\`). \`--write\` sends
-the SQL unchanged to the normal read-write endpoint, restoring the previous
-behavior. Rows are capped by default — add --full for every row, or --limit <n>
-to cap explicitly.
+the SQL with surrounding whitespace trimmed to the normal read-write endpoint,
+restoring the previous behavior. Rows are capped by default — add --full for
+every row, or --limit <n> to cap explicitly.
 
 examples:
   supabase-axi db push --dry-run
@@ -143,7 +143,7 @@ async function dbQuery(args: string[]) {
 
   // The read-only endpoint is parser-backed, so drop trailing semicolons and
   // whitespace (an empty trailing statement can be rejected); --write keeps
-  // today's byte-for-byte SQL.
+  // trailing semicolons.
   const query = write ? sql : stripTrailingSemicolons(sql);
   if (!query) {
     throw usage(
