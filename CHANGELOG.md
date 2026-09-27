@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.2](https://github.com/maximebrmd/supabase-axi/compare/supabase-axi-v1.1.1...supabase-axi-v1.1.2) (2026-09-27)
+
+
+### Bug Fixes
+
+* make db query read-only by default ([#13](https://github.com/maximebrmd/supabase-axi/issues/13)) ([21caeac](https://github.com/maximebrmd/supabase-axi/commit/21caeac6b1ed1516957ce1c01743c16948a4e655))
+* withhold credentials in raw Management API responses ([#14](https://github.com/maximebrmd/supabase-axi/issues/14)) ([7840832](https://github.com/maximebrmd/supabase-axi/commit/7840832373cfe92cf96a238f85cac2c219ee393a))
+
 ## [1.1.1](https://github.com/maximebrmd/supabase-axi/compare/supabase-axi-v1.1.0...supabase-axi-v1.1.1) (2026-08-19)
 
 
