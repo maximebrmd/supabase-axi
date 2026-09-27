@@ -1,11 +1,11 @@
 # Agent instructions
 
-Use `supabase-axi` for Supabase: list & inspect projects and their API keys/connection info; push, pull, diff, reset & dump databases; run SQL against a database with `db query`; manage migrations, Edge Functions, preview branches, and secrets; generate TypeScript types; link a project; drive the local stack; or call any Management API endpoint with `api`.
+Use `supabase-axi` for Supabase: list & inspect projects and their API keys/connection info; push, pull, diff, reset & dump databases; run read-only SQL against a database with `db query` (`--write` to mutate); manage migrations, Edge Functions, preview branches, and secrets; generate TypeScript types; link a project; drive the local stack; or call any Management API endpoint with `api`.
 
 - Auth: supabase-axi wraps the official Supabase CLI (`supabase`). Install it (`brew install supabase/tap/supabase`) and run `supabase login` (browser; token stored locally, acts as you). For headless use or the `api` escape hatch, export `SUPABASE_ACCESS_TOKEN`.
 - Run `supabase-axi` (no args) for a content-first overview of your projects; `supabase-axi --help` for commands.
 - Output is TOON on stdout. Exit codes: 0 success, 1 error, 2 usage. Errors carry a `code` and a `help` list.
-- Structured error codes: `SUPABASE_NOT_INSTALLED`, `AUTH_REQUIRED` (run `supabase login`), `NOT_LINKED` (run `supabase-axi link --project-ref <ref>`), `DOCKER_REQUIRED` (local-stack commands need Docker), `OBJECT_NOT_FOUND`, `VALIDATION_ERROR`.
+- Structured error codes: `SUPABASE_NOT_INSTALLED`, `AUTH_REQUIRED` (run `supabase login`), `NOT_LINKED` (run `supabase-axi link --project-ref <ref>`), `DOCKER_REQUIRED` (local-stack commands need Docker), `OBJECT_NOT_FOUND`, `READ_ONLY` (`db query` refused a write; re-run with `--write`), `VALIDATION_ERROR`.
 - Lists are minimal by default — pass `--full` or `--fields <list>` to widen. Large blobs (`db dump`, `db diff`, `gen types`) are previewed; add `--full` to return the complete output (or pass `-f <file>` to `db dump`/`db diff` to write it straight to a file).
 - `projects create` provisions billable cloud infrastructure; `db reset`/`start`/`stop` act on the local stack.
 
