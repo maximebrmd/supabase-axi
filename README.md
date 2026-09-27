@@ -122,7 +122,7 @@ Run `supabase-axi --help` for the full command list, or `supabase-axi <command> 
 | `gen types`                                              | Generate TypeScript types (`--local` default, or `--linked` / `--project-id <ref>`).                             |
 | `link`                                                   | Link the current directory to a remote project.                                                                  |
 | `status` / `start` / `stop`                              | Drive the local development stack (Docker required).                                                             |
-| `api <method> <path> [--body <json>] [--reveal-secrets]` | Call any Supabase Management API endpoint directly (secret values and credential-like fields masked by default). |
+| `api [method] <path> [--body <json>] [--reveal-secrets]` | Call any Supabase Management API endpoint directly (secret values and credential-like fields masked by default). |
 | `setup hooks`                                            | Install agent session-start hooks.                                                                               |
 
 ## AXI design notes

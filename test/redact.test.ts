@@ -158,9 +158,7 @@ describe("redactApiPayload", () => {
     const { payload, secrets } = redactApiPayload("secrets", [
       { name: "META", value: { note: "FIXTURE-NESTED" } },
     ]);
-    expect(payload).toEqual([
-      { name: "META", value: { note: "hidden" } },
-    ]);
+    expect(payload).toEqual([{ name: "META", value: { note: "hidden" } }]);
     expect(secrets).toBe(1);
   });
 

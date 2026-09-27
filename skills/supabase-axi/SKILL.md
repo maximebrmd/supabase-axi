@@ -38,7 +38,7 @@ Use supabase-axi whenever a task touches Supabase: listing projects or fetching 
 7. `branches list/create/get/delete` manage preview branches; `secrets list/set/unset` manage Edge Function secrets.
 8. `gen types` prints TypeScript types (`--local` by default, or `--linked` / `--project-id <ref>`).
 9. `status` / `start` / `stop` drive the local stack (Docker required).
-10. `api <method> <path> [--body <json>] [--reveal-secrets]` calls any Supabase **Management API** endpoint directly — the escape hatch for anything the dedicated commands don't cover (needs `SUPABASE_ACCESS_TOKEN`). By default, secret `/api-keys` values retain a short suffix, while `/secrets` values are fully masked; public API keys and signing-key identity metadata remain visible. Fields named like keys, secrets, tokens, passwords, or connection strings are masked in other responses, including nested values. `--reveal-secrets` prints the values.
+10. `api [method] <path> [--body <json>] [--reveal-secrets]` calls any Supabase **Management API** endpoint directly — the escape hatch for anything the dedicated commands don't cover (needs `SUPABASE_ACCESS_TOKEN`). By default, secret `/api-keys` values retain a short suffix, while `/secrets` values are fully masked; public API keys and signing-key identity metadata remain visible. Fields named like keys, secrets, tokens, passwords, or connection strings are masked in other responses, including nested values. `--reveal-secrets` prints the values.
 11. Every response ends with contextual next-step hints under `help:` — follow them.
 
 ## Commands
