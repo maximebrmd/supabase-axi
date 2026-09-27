@@ -207,10 +207,10 @@ export interface Redaction {
 
 /**
  * Mask credential values in a Management API response before it is rendered.
- * Known secret-bearing paths (`/api-keys`, `/secrets`) get their dedicated
- * shapes; every other field is judged by name so unknown endpoints fail
- * closed. Recurses through nested objects and arrays, masking bare strings
- * inside a credential-named container too.
+ * Known secret-bearing paths (`/api-keys`, `/secrets`, `/signing-keys`) get
+ * dedicated handling; elsewhere, credential-like field names trigger masking.
+ * Recurses through nested objects and arrays, masking bare strings inside a
+ * credential-named container too.
  */
 export function redactApiPayload(path: string, payload: unknown): Redaction {
   const state: RedactionState = { count: 0 };

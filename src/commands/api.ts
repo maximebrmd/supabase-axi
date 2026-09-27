@@ -10,11 +10,12 @@ export const API_HELP = `usage: supabase-axi api <path> [flags]
 Call the Supabase Management API directly — the escape hatch for anything the
 dedicated commands don't cover (organizations, custom domains, postgres config).
 
-Credential values are withheld by default: /api-keys and /secrets responses use
-the same name-plus-suffix identity as \`projects get\`, and anywhere else a field
-named like a key, secret, token, password, or connection string is masked —
-nested arrays and objects included. Pass --reveal-secrets to print the values;
-the output then contains a live credential.
+Recognized credential values are withheld by default: secret API-key values
+and /secrets values retain a short suffix, while public API keys remain visible.
+On other responses, fields named like keys, secrets, tokens, passwords, or
+connection strings are masked, including nested values. Signing-key identity
+metadata remains visible. Pass --reveal-secrets to print the values; the output
+then contains a live credential.
 
 Authentication uses SUPABASE_ACCESS_TOKEN (the Management API has no browser
 login). Create one at https://supabase.com/dashboard/account/tokens.
