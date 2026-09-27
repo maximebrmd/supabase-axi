@@ -130,9 +130,12 @@ describe("dbCommand query", () => {
   });
 
   it("rejects SQL that is only semicolons", async () => {
+    linked.mockReturnValue(null);
     const err: AxiError = await dbCommand(["query", " ; ; "]).catch((e) => e);
     expect(err).toBeInstanceOf(AxiError);
     expect(err.code).toBe("VALIDATION_ERROR");
+    expect(linked).not.toHaveBeenCalled();
+    expect(notLinked).not.toHaveBeenCalled();
     expect(api).not.toHaveBeenCalled();
   });
 

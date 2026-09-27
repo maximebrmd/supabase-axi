@@ -134,9 +134,6 @@ async function dbQuery(args: string[]) {
     );
   }
 
-  const ref = strFlag(flags["project-ref"]) ?? linkedProjectRef();
-  if (!ref) throw notLinkedError();
-
   const full = flags.full === true;
   const write = flags.write === true;
   const limit = parseLimit(flags.limit);
@@ -152,6 +149,9 @@ async function dbQuery(args: string[]) {
       "Wrap the statement in quotes so the shell passes it as one argument",
     );
   }
+
+  const ref = strFlag(flags["project-ref"]) ?? linkedProjectRef();
+  if (!ref) throw notLinkedError();
 
   const path = write
     ? `v1/projects/${ref}/database/query`
