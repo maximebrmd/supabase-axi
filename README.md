@@ -90,7 +90,8 @@ supabase-axi link --project-ref <ref>         # link this directory to a project
 supabase-axi db push --dry-run                # apply local migrations remotely
 supabase-axi db diff --schema public          # pending schema changes as SQL
 supabase-axi db dump --data-only              # dump the database
-supabase-axi db query "select count(*) from todos"  # run SQL, return the rows
+supabase-axi db query "select count(*) from public.todos"  # run read-only SQL, return the rows
+supabase-axi db query "update public.todos set done = true" --write  # explicit mutation
 supabase-axi migration list                   # local & remote migration status
 supabase-axi migration new add_users_table    # scaffold a migration
 supabase-axi functions list                   # deployed Edge Functions
@@ -107,21 +108,21 @@ Run `supabase-axi --help` for the full command list, or `supabase-axi <command> 
 
 ## Command reference
 
-| Command                                           | What it does                                                                                   |
-| ------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `(none)` / home                                   | Content-first overview: your projects, plus local migrations when run from a linked directory. |
-| `whoami`                                          | Confirm the active identity by listing reachable projects; `AUTH_REQUIRED` when not logged in. |
-| `projects <list\|get\|create>`                    | List projects, fetch keys + connection info (secret values withheld), or create a project.     |
-| `db <push\|pull\|diff\|reset\|dump\|query>`       | Apply/import/diff/rebuild/export the database, or run SQL and read the rows.                   |
-| `migration <list\|new\|up\|repair\|squash>`       | Manage migration scripts and history.                                                          |
-| `functions <list\|new\|deploy\|delete\|download>` | Manage Edge Functions.                                                                         |
-| `branches <list\|create\|get\|delete\|disable>`   | Manage preview branches.                                                                       |
-| `secrets <list\|set\|unset>`                      | Manage Edge Function secrets (values never printed back).                                      |
-| `gen types`                                       | Generate TypeScript types (`--local` default, or `--linked` / `--project-id <ref>`).           |
-| `link`                                            | Link the current directory to a remote project.                                                |
-| `status` / `start` / `stop`                       | Drive the local development stack (Docker required).                                           |
-| `api <method> <path> [--body <json>]`             | Call any Supabase Management API endpoint directly.                                            |
-| `setup hooks`                                     | Install agent session-start hooks.                                                             |
+| Command                                           | What it does                                                                                          |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `(none)` / home                                   | Content-first overview: your projects, plus local migrations when run from a linked directory.        |
+| `whoami`                                          | Confirm the active identity by listing reachable projects; `AUTH_REQUIRED` when not logged in.        |
+| `projects <list\|get\|create>`                    | List projects, fetch keys + connection info (secret values withheld), or create a project.            |
+| `db <push\|pull\|diff\|reset\|dump\|query>`       | Apply/import/diff/rebuild/export the database, or run SQL read-only by default (`--write` to mutate). |
+| `migration <list\|new\|up\|repair\|squash>`       | Manage migration scripts and history.                                                                 |
+| `functions <list\|new\|deploy\|delete\|download>` | Manage Edge Functions.                                                                                |
+| `branches <list\|create\|get\|delete\|disable>`   | Manage preview branches.                                                                              |
+| `secrets <list\|set\|unset>`                      | Manage Edge Function secrets (values never printed back).                                             |
+| `gen types`                                       | Generate TypeScript types (`--local` default, or `--linked` / `--project-id <ref>`).                  |
+| `link`                                            | Link the current directory to a remote project.                                                       |
+| `status` / `start` / `stop`                       | Drive the local development stack (Docker required).                                                  |
+| `api <method> <path> [--body <json>]`             | Call any Supabase Management API endpoint directly.                                                   |
+| `setup hooks`                                     | Install agent session-start hooks.                                                                    |
 
 ## AXI design notes
 
@@ -131,7 +132,7 @@ supabase-axi follows the [AXI](https://github.com/kunchenguid/axi) conventions, 
 - **Minimal by default** — lists show a few key columns; widen with `--full` or `--fields <a,b>`. Large blobs (`db dump`, `db diff`, `gen types`) are previewed with line/char counts; add `--full` to return the complete output (or pass `-f <file>` to `db dump`/`db diff` to write it straight to a file).
 - **Definitive empty states** — an empty list returns an explicit "no … yet" result, not a bare `[]`.
 - **Contextual suggestions** — every response ends with a `help:` array of next-step commands.
-- **Structured errors** — failures carry a `code` (`SUPABASE_NOT_INSTALLED`, `AUTH_REQUIRED`, `NOT_LINKED`, `DOCKER_REQUIRED`, `OBJECT_NOT_FOUND`, `VALIDATION_ERROR`) and actionable suggestions. Exit codes: `0` success, `1` error, `2` usage.
+- **Structured errors** — failures carry a `code` (`SUPABASE_NOT_INSTALLED`, `AUTH_REQUIRED`, `NOT_LINKED`, `DOCKER_REQUIRED`, `OBJECT_NOT_FOUND`, `READ_ONLY`, `VALIDATION_ERROR`) and actionable suggestions. Exit codes: `0` success, `1` error, `2` usage.
 - **Single boundary** — `src/supa.ts` is the only module that shells out to `supabase` (or hits the Management API), which keeps the command layer pure and the test suite hermetic at 100% coverage.
 
 ## Contributing

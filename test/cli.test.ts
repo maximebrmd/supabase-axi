@@ -7,7 +7,7 @@ vi.mock("../src/supa.js", () => ({
 }));
 
 import { main } from "../src/cli.js";
-import { supaJson } from "../src/supa.js";
+import { mgmtApi, supaJson } from "../src/supa.js";
 import { AxiError } from "../src/errors.js";
 
 const json = vi.mocked(supaJson);
@@ -63,5 +63,25 @@ describe("main", () => {
     const c = capture();
     await main({ argv: ["db", "--help"], stdout: c.stdout });
     expect(c.read()).toContain("supabase-axi db <push|pull|diff|reset|dump>");
+  });
+
+  it("renders a READ_ONLY error with the --write suggestion for a refused write", async () => {
+    vi.mocked(mgmtApi).mockRejectedValue(
+      new AxiError(
+        "permission denied for schema public",
+        "VALIDATION_ERROR",
+        [],
+      ),
+    );
+    const c = capture();
+    await main({
+      argv: ["db", "query", "create table x (id int)", "--project-ref", "abcd"],
+      stdout: c.stdout,
+    });
+    const out = c.read();
+    expect(out).toContain("READ_ONLY");
+    expect(out).toContain("permission denied for schema public");
+    expect(out).toContain("--write");
+    expect(process.exitCode).toBe(1);
   });
 });

@@ -1,5 +1,5 @@
 import { parseArgs, strFlag } from "../args.js";
-import { usage } from "../errors.js";
+import { AxiError, usage } from "../errors.js";
 import { asArray, preview, type Obj } from "../format.js";
 import {
   linkedProjectRef,
@@ -9,7 +9,7 @@ import {
 } from "../supa.js";
 
 export const DB_HELP = `usage: supabase-axi db <push|pull|diff|reset|dump> [flags] [--full]
-       supabase-axi db query "<sql>" [--project-ref <ref>] [--limit <n>] [--full]
+       supabase-axi db query "<sql>" [--project-ref <ref>] [--limit <n>] [--full] [--write]
 
 subcommands:
   push    Apply local migrations to the linked/remote database.
@@ -18,16 +18,23 @@ subcommands:
   reset   Recreate the LOCAL database from migrations + seed (needs Docker).
   dump    Dump the database schema (or --data-only) to stdout.
   query   Run a SQL statement against the linked project and return the rows.
+          Read-only by default; pass --write to allow mutations.
 
 Flags after push/pull/diff/reset/dump are forwarded to the Supabase CLI
 verbatim, e.g. \`db push --dry-run\`, \`db diff --schema public\`, \`db dump
 --data-only\`. Blob output (diff/dump) is previewed; add --full to return the
 complete output, or pass -f <file> to write it straight to a file.
 
-\`db query\` runs arbitrary SQL through the Management API (like the Supabase
-MCP's execute_sql); it needs a linked project (or --project-ref) and reads the
-access token from \`supabase login\` / SUPABASE_ACCESS_TOKEN. Rows are capped by
-default — add --full for every row, or --limit <n> to cap explicitly.
+\`db query\` runs SQL through the Management API; it needs a linked project
+(or --project-ref) and reads the access token from \`supabase login\` /
+SUPABASE_ACCESS_TOKEN. By default it uses the Management API's read-only
+endpoint, which runs the query as Postgres's read-only
+\`supabase_read_only_user\` role: a write fails with a structured
+READ_ONLY error whose help points at --write. The read-only endpoint requires
+schema-qualified relation references (e.g. \`public.todos\`). \`--write\` sends
+the SQL with surrounding whitespace trimmed to the normal read-write endpoint,
+restoring the previous behavior. Rows are capped by default — add --full for
+every row, or --limit <n> to cap explicitly.
 
 examples:
   supabase-axi db push --dry-run
@@ -36,14 +43,21 @@ examples:
   supabase-axi db pull
   supabase-axi db query "select id, email from auth.users limit 5"
   supabase-axi db query "select count(*) from public.todos" --project-ref abcd
+  supabase-axi db query "update public.todos set done = true" --write
 `;
 
 // Rows shown by default when neither --full nor --limit is given.
 const DEFAULT_ROW_CAP = 50;
 
-const QUERY_HINTS = [
-  "This runs raw SQL — persist schema changes as migrations (`supabase-axi migration new <name>`)",
-];
+const MIGRATION_HINT =
+  "Persist schema changes as migrations (`supabase-axi migration new <name>`)";
+const READ_ONLY_HINT =
+  "Read-only query — re-run with --write to allow mutations";
+
+/** Help hints for a query result, varied by the mode it ran in. */
+function queryHints(write: boolean): string[] {
+  return write ? [MIGRATION_HINT] : [READ_ONLY_HINT, MIGRATION_HINT];
+}
 
 const SUBS = new Set(["push", "pull", "diff", "reset", "dump"]);
 
@@ -89,14 +103,46 @@ export async function dbCommand(args: string[]) {
 }
 
 /**
- * Execute arbitrary SQL against the project's database via the Management API
- * (`POST /v1/projects/{ref}/database/query`) and return the rows as a TOON
- * table. Faithful to the Supabase MCP's execute_sql: the SQL runs as-is.
+ * Failure signatures that mean the read-only database role refused the
+ * statement because it writes. Postgres refuses writes inside a read-only
+ * transaction (SQLSTATE 25006) or for lack of grants (42501 — the read-only
+ * role only holds pg_read_all_data), and the endpoint may also refuse
+ * non-SELECT statements before they ever reach Postgres.
+ */
+const READ_ONLY_REFUSAL_PATTERNS = [
+  /read[-\s]?only transaction/i, // Postgres 25006: cannot execute ... in a read-only transaction
+  /permission denied for (?:schema|database|table|relation|sequence)\b/i,
+  /(?:only|just)\s+(?:select|read)/i, // endpoint: only SELECT/read queries are allowed
+  /(?:writes?|mutations?|modifications?)\s+(?:are\s+)?(?:not allowed|forbidden|blocked|denied|refused)/i,
+];
+
+/**
+ * Execute SQL against the project's database via the Management API and return
+ * the rows as a TOON table. Read-only by default: the statement is sent to
+ * `/database/query/read-only`, which runs it as Postgres's
+ * `supabase_read_only_user` role. `--write` restores raw SQL execution on
+ * `/database/query`.
  */
 async function dbQuery(args: string[]) {
-  const { positionals, flags } = parseArgs(args, ["full"]);
+  const { positionals, flags } = parseArgs(args, ["full", "write"]);
   const sql = (positionals[0] ?? "").trim();
   if (!sql) {
+    throw usage(
+      "Missing SQL to run",
+      'Run `supabase-axi db query "select 1"`',
+      "Wrap the statement in quotes so the shell passes it as one argument",
+    );
+  }
+
+  const full = flags.full === true;
+  const write = flags.write === true;
+  const limit = parseLimit(flags.limit);
+
+  // The read-only endpoint is parser-backed, so drop trailing semicolons and
+  // whitespace (an empty trailing statement can be rejected); --write keeps
+  // trailing semicolons.
+  const query = write ? sql : stripTrailingSemicolons(sql);
+  if (!query) {
     throw usage(
       "Missing SQL to run",
       'Run `supabase-axi db query "select 1"`',
@@ -107,19 +153,29 @@ async function dbQuery(args: string[]) {
   const ref = strFlag(flags["project-ref"]) ?? linkedProjectRef();
   if (!ref) throw notLinkedError();
 
-  const full = flags.full === true;
-  const limit = parseLimit(flags.limit);
+  const path = write
+    ? `v1/projects/${ref}/database/query`
+    : `v1/projects/${ref}/database/query/read-only`;
 
-  const rows = asArray<Obj>(
-    await mgmtApi(`v1/projects/${ref}/database/query`, {
-      method: "post",
-      body: { query: sql },
-    }),
-  );
+  let rows: Obj[];
+  try {
+    rows = asArray<Obj>(
+      await mgmtApi(path, { method: "post", body: { query } }),
+    );
+  } catch (error) {
+    if (!write) throw mapReadOnlyError(error);
+    throw error;
+  }
   const total = rows.length;
 
   if (total === 0) {
-    return { db: "query", ref, rows: 0, result: "0 rows", help: QUERY_HINTS };
+    return {
+      db: "query",
+      ref,
+      rows: 0,
+      result: "0 rows",
+      help: queryHints(write),
+    };
   }
 
   const cap = limit ?? (full ? Infinity : DEFAULT_ROW_CAP);
@@ -132,12 +188,39 @@ async function dbQuery(args: string[]) {
     result.truncated = true;
     result.help = [
       `Showing ${shown.length} of ${total} rows — add --full for all, or --limit <n>`,
-      ...QUERY_HINTS,
+      ...queryHints(write),
     ];
   } else {
-    result.help = QUERY_HINTS;
+    result.help = queryHints(write);
   }
   return result;
+}
+
+/** Drop trailing semicolons/whitespace so the read-only parser sees one statement. */
+function stripTrailingSemicolons(sql: string): string {
+  return sql.replace(/[\s;]+$/, "");
+}
+
+/**
+ * Turn a read-only query failure that shows the database refused a write into
+ * a structured READ_ONLY error pointing at --write; keep every other failure
+ * (syntax errors, missing relations, auth) untouched.
+ */
+function mapReadOnlyError(error: unknown): unknown {
+  if (
+    error instanceof AxiError &&
+    READ_ONLY_REFUSAL_PATTERNS.some((pattern) => pattern.test(error.message))
+  ) {
+    return new AxiError(
+      `Read-only query blocked a write: ${error.message}`,
+      "READ_ONLY",
+      [
+        'Re-run with `--write` if you intend to modify the database: `supabase-axi db query "<sql>" --write`',
+        MIGRATION_HINT,
+      ],
+    );
+  }
+  return error;
 }
 
 /** Parse `--limit <n>` into a positive integer, or undefined when absent. */
