@@ -11,7 +11,8 @@ Call the Supabase Management API directly — the escape hatch for anything the
 dedicated commands don't cover (organizations, custom domains, postgres config).
 
 Recognized credential values are withheld by default: secret API-key values
-and /secrets values retain a short suffix, while public API keys remain visible.
+retain a short suffix, while /secrets values are fully masked and public API
+keys remain visible.
 On other responses, fields named like keys, secrets, tokens, passwords, or
 connection strings are masked, including nested values. Signing-key identity
 metadata remains visible. Pass --reveal-secrets to print the values; the output

@@ -4,6 +4,7 @@ import {
   isPublicKey,
   redactApiPayload,
   withheld,
+  withheldKey,
 } from "../src/redact.js";
 
 describe("isPublicKey", () => {
@@ -31,14 +32,15 @@ describe("isPublicKey", () => {
 
 describe("withheld", () => {
   it("fully masks values by default", () => {
-    expect(withheld("FIXTURE-SECRET-VALUE")).toBe("hidden");
+    expect(withheld()).toBe("hidden");
   });
 
   it("shows no suffix for short or non-string values", () => {
-    expect(withheld("abcd")).toBe("hidden");
-    expect(withheld("a")).toBe("hidden");
-    expect(withheld(undefined)).toBe("hidden");
-    expect(withheld(12345)).toBe("hidden");
+    expect(withheldKey("abcd")).toBe("hidden");
+    expect(withheldKey("a")).toBe("hidden");
+    expect(withheldKey(undefined)).toBe("hidden");
+    expect(withheldKey(12345)).toBe("hidden");
+    expect(withheldKey("FIXTURE-SECRET-VALUE")).toBe("hidden (…ALUE)");
   });
 });
 

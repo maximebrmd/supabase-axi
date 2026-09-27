@@ -268,9 +268,12 @@ describe("apiCommand", () => {
 
   it("fails closed when an unknown endpoint carries an api_key field", async () => {
     api.mockResolvedValue({ api_key: "FIXTURE-UNKNOWN" });
-    const out: any = await apiCommand(["v1/organizations/o1"]);
-    expect(out.result.api_key).toBe("hidden (\u2026NOWN)");
-    expect(out.withheld).toBe(1);
+    const c = capture();
+    await main({ argv: ["api", "v1/organizations/o1"], stdout: c.stdout });
+    expect(c.read()).toContain("api_key: hidden");
+    expect(c.read()).not.toContain("FIXTURE-UNKNOWN");
+    expect(c.read()).not.toContain("\u2026NOWN");
+    expect(c.read()).toContain("withheld: 1");
   });
 
   it("withholds compound credential fields in rendered API output", async () => {

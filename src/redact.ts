@@ -32,18 +32,13 @@ export function isPublicKey(key: Obj): boolean {
   return PUBLIC_KEY_NAMES.has(name);
 }
 
-/**
- * Identity for a withheld secret: enough to tell two keys apart, or to match
- * one against a value the caller already holds, without being usable.
- */
-export function withheld(value: unknown): string {
-  return withheldWithSuffix(value, false);
+export function withheld(): string {
+  return "hidden";
 }
 
-function withheldWithSuffix(value: unknown, withSuffix: boolean): string {
+export function withheldKey(value: unknown): string {
   const v = typeof value === "string" ? value : "";
-  if (withSuffix && v.length > 4) return `hidden (…${v.slice(-4)})`;
-  return "hidden";
+  return v.length > 4 ? `hidden (…${v.slice(-4)})` : withheld();
 }
 
 /**
@@ -151,7 +146,7 @@ function redactValue(
     // (e.g. `{"tokens": ["…"]}`) has no field name to judge it by.
     if (!insideCredential) return value;
     state.count++;
-    return withheld(value);
+    return withheld();
   }
   if (Array.isArray(value)) {
     return value.map((item) =>
@@ -174,7 +169,7 @@ function redactValue(
       // Known /api-keys shape: mask a key unless it is positively public, so
       // the generic field rule can never over-mask a publishable value.
       if (typeof raw === "string" && !isPublicKey(value as Obj)) {
-        out[field] = withheldWithSuffix(raw, true);
+        out[field] = withheldKey(raw);
         state.count++;
       } else {
         out[field] = redactValue(raw, context, state, insideCredential);
@@ -185,7 +180,7 @@ function redactValue(
       // Known /secrets shape: the value is always a credential, whatever its
       // JSON shape; a non-string subtree is masked entirely.
       if (typeof raw === "string") {
-        out[field] = withheld(raw);
+        out[field] = withheld();
         state.count++;
       } else {
         out[field] = redactValue(raw, context, state, true);
@@ -194,7 +189,7 @@ function redactValue(
     }
     const credential = insideCredential || isCredentialField(field);
     if (typeof raw === "string" && credential) {
-      out[field] = withheld(raw);
+      out[field] = withheld();
       state.count++;
       continue;
     }

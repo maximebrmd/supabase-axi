@@ -1,7 +1,7 @@
 import { listFlag, parseArgs, strFlag } from "../args.js";
 import { usage } from "../errors.js";
 import { asArray, shortDate, type Obj } from "../format.js";
-import { isPublicKey, withheld } from "../redact.js";
+import { isPublicKey, withheldKey } from "../redact.js";
 import { supaJson, supaText } from "../supa.js";
 
 export const PROJECTS_HELP = `usage: supabase-axi projects <list|get|create> [args] [flags]
@@ -135,7 +135,7 @@ async function projectsGet(args: string[]) {
       return {
         name: k.name,
         class: isPublic ? "public" : "secret",
-        key: isPublic || reveal ? k.api_key : withheld(k.api_key),
+        key: isPublic || reveal ? k.api_key : withheldKey(k.api_key),
       };
     }),
     ...(secretCount && reveal
