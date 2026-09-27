@@ -1,6 +1,7 @@
 import { listFlag, parseArgs, strFlag } from "../args.js";
 import { usage } from "../errors.js";
 import { asArray, shortDate, type Obj } from "../format.js";
+import { isPublicKey, withheldKey } from "../redact.js";
 import { supaJson, supaText } from "../supa.js";
 
 export const PROJECTS_HELP = `usage: supabase-axi projects <list|get|create> [args] [flags]
@@ -100,43 +101,6 @@ async function projectsList(args: string[]) {
   };
 }
 
-/**
- * Fallback for payloads without a `type` field: key names Supabase designs to
- * be shipped in client code.
- */
-const PUBLIC_KEY_NAMES = new Set(["anon", "publishable"]);
-
-function lower(value: unknown): string {
-  return typeof value === "string" ? value.toLowerCase() : "";
-}
-
-/**
- * A key is public only when positively recognised as such. `type` is
- * authoritative — names are user-chosen in the dashboard, and both new-model
- * keys arrive named `default` — so classify on it: `publishable` is public,
- * `legacy` is public only for `anon`, and any other type (`secret`, or a type
- * Supabase adds later) is secret. Only when the payload carries no type at all
- * do we fall back to the name allow-list. Unknown ⇒ secret, so a new key type
- * is withheld on the day it appears rather than leaked once.
- */
-function isPublicKey(key: Obj): boolean {
-  const type = lower(key.type);
-  const name = lower(key.name);
-  if (type === "publishable") return true;
-  if (type === "legacy") return name === "anon";
-  if (type) return false;
-  return PUBLIC_KEY_NAMES.has(name);
-}
-
-/**
- * Identity for a withheld secret: enough to tell two keys apart, or to match
- * one against a value the caller already holds, without being usable.
- */
-function withheld(value: unknown): string {
-  const v = typeof value === "string" ? value : "";
-  return v.length > 4 ? `hidden (…${v.slice(-4)})` : "hidden";
-}
-
 async function projectsGet(args: string[]) {
   const { positionals, flags } = parseArgs(args, ["reveal-secrets"]);
   const reveal = flags["reveal-secrets"] === true;
@@ -171,7 +135,7 @@ async function projectsGet(args: string[]) {
       return {
         name: k.name,
         class: isPublic ? "public" : "secret",
-        key: isPublic || reveal ? k.api_key : withheld(k.api_key),
+        key: isPublic || reveal ? k.api_key : withheldKey(k.api_key),
       };
     }),
     ...(secretCount && reveal

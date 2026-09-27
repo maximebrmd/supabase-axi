@@ -38,7 +38,7 @@ Use supabase-axi whenever a task touches Supabase: listing projects or fetching 
 7. `branches list/create/get/delete` manage preview branches; `secrets list/set/unset` manage Edge Function secrets.
 8. `gen types` prints TypeScript types (`--local` by default, or `--linked` / `--project-id <ref>`).
 9. `status` / `start` / `stop` drive the local stack (Docker required).
-10. `api <method> <path> [--body <json>]` calls any Supabase **Management API** endpoint directly — the escape hatch for anything the dedicated commands don't cover (needs `SUPABASE_ACCESS_TOKEN`).
+10. `api [method] <path> [--body <json>] [--reveal-secrets]` calls any Supabase **Management API** endpoint directly — the escape hatch for anything the dedicated commands don't cover (needs `SUPABASE_ACCESS_TOKEN`). By default, secret `/api-keys` values retain a short suffix, while `/secrets` values are fully masked; public API keys and signing-key identity metadata remain visible. Fields named like keys, secrets, tokens, passwords, or connection strings are masked in other responses, including nested values. `--reveal-secrets` prints the values.
 11. Every response ends with contextual next-step hints under `help:` — follow them.
 
 ## Commands
@@ -65,6 +65,6 @@ Run `npx -y supabase-axi --help` for global flags, or `npx -y supabase-axi <comm
 - `db`, `migration up`, `gen types --local`, and `start`/`stop`/`status` act on the **local** stack or a **linked** project; link first with `link --project-ref <ref>`.
 - `db query "<sql>"` runs SQL via the Management API and returns rows as a TOON table — link first, or pass `--project-ref <ref>`. It is read-only by default: the API runs it as Postgres's read-only `supabase_read_only_user` role, so relations must be schema-qualified (e.g. `public.todos`) and a refused write returns a structured `READ_ONLY` error suggesting `--write`. `--write` keeps trailing semicolons and uses the normal endpoint for intentional mutations; trailing semicolons are stripped for read-only queries. Rows are capped by default; add `--full` for every row or `--limit <n>`.
 - `projects create` provisions **billable** cloud infrastructure — use it deliberately.
-- Secret values are never printed back; `secrets list` shows a digest only, and `projects get` shows secret API keys by name and suffix only (`--reveal-secrets` prints them, which puts a full-privilege credential in the transcript).
+- By default, `secrets list` shows a digest only, `projects get` shows secret API keys by name and suffix only, and `api` masks credential fields in responses. `--reveal-secrets` prints values for `projects get` and `api`, which puts credentials in the transcript.
 - The `api` escape hatch uses the Management API and needs `SUPABASE_ACCESS_TOKEN` (the same token `supabase login` uses); the whole Management API is reachable through it.
 - Exit codes: 0 success, 1 error, 2 usage. Errors are structured with an `error`, `code`, and `help` list.
