@@ -100,7 +100,8 @@ supabase-axi branches list                    # preview branches
 supabase-axi secrets set KEY=value            # set Edge Function secrets
 supabase-axi gen types --linked               # TypeScript types for the DB
 supabase-axi status                           # local stack health (Docker)
-supabase-axi api v1/organizations             # raw Management API call
+supabase-axi api v1/organizations             # raw Management API call (credentials masked)
+supabase-axi api v1/projects/<ref>/api-keys --reveal-secrets  # ...print credential values
 supabase-axi whoami                           # confirm the active identity
 ```
 
@@ -108,21 +109,21 @@ Run `supabase-axi --help` for the full command list, or `supabase-axi <command> 
 
 ## Command reference
 
-| Command                                           | What it does                                                                                          |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `(none)` / home                                   | Content-first overview: your projects, plus local migrations when run from a linked directory.        |
-| `whoami`                                          | Confirm the active identity by listing reachable projects; `AUTH_REQUIRED` when not logged in.        |
-| `projects <list\|get\|create>`                    | List projects, fetch keys + connection info (secret values withheld), or create a project.            |
-| `db <push\|pull\|diff\|reset\|dump\|query>`       | Apply/import/diff/rebuild/export the database, or run SQL read-only by default (`--write` to mutate). |
-| `migration <list\|new\|up\|repair\|squash>`       | Manage migration scripts and history.                                                                 |
-| `functions <list\|new\|deploy\|delete\|download>` | Manage Edge Functions.                                                                                |
-| `branches <list\|create\|get\|delete\|disable>`   | Manage preview branches.                                                                              |
-| `secrets <list\|set\|unset>`                      | Manage Edge Function secrets (values never printed back).                                             |
-| `gen types`                                       | Generate TypeScript types (`--local` default, or `--linked` / `--project-id <ref>`).                  |
-| `link`                                            | Link the current directory to a remote project.                                                       |
-| `status` / `start` / `stop`                       | Drive the local development stack (Docker required).                                                  |
-| `api <method> <path> [--body <json>]`             | Call any Supabase Management API endpoint directly.                                                   |
-| `setup hooks`                                     | Install agent session-start hooks.                                                                    |
+| Command                                                  | What it does                                                                                               |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `(none)` / home                                          | Content-first overview: your projects, plus local migrations when run from a linked directory.             |
+| `whoami`                                                 | Confirm the active identity by listing reachable projects; `AUTH_REQUIRED` when not logged in.             |
+| `projects <list\|get\|create>`                           | List projects, fetch keys + connection info (secret values withheld), or create a project.                 |
+| `db <push\|pull\|diff\|reset\|dump\|query>`              | Apply/import/diff/rebuild/export the database, or run SQL read-only by default (`--write` to mutate).      |
+| `migration <list\|new\|up\|repair\|squash>`              | Manage migration scripts and history.                                                                      |
+| `functions <list\|new\|deploy\|delete\|download>`        | Manage Edge Functions.                                                                                     |
+| `branches <list\|create\|get\|delete\|disable>`          | Manage preview branches.                                                                                   |
+| `secrets <list\|set\|unset>`                             | Manage Edge Function secrets (values never printed back).                                                  |
+| `gen types`                                              | Generate TypeScript types (`--local` default, or `--linked` / `--project-id <ref>`).                       |
+| `link`                                                   | Link the current directory to a remote project.                                                            |
+| `status` / `start` / `stop`                              | Drive the local development stack (Docker required).                                                       |
+| `api <method> <path> [--body <json>] [--reveal-secrets]` | Call any Supabase Management API endpoint directly (credential values withheld unless `--reveal-secrets`). |
+| `setup hooks`                                            | Install agent session-start hooks.                                                                         |
 
 ## AXI design notes
 
